@@ -4,6 +4,10 @@ Every future commit that changes behavior, setup, API, UI, workflow, config, or 
 
 ## Unreleased
 
+- Added scheduled-jobs audit runbook and `scripts/audit_scheduled_jobs.sh`.
+- Documented 2026-05-31 cron/systemd/Hermes scheduler audit in `docs/scheduled_jobs_audit_2026-05-31.md`.
+- Fixed Morning Content Intelligence Hermes cron by converting it to no-agent script mode.
+- Cleared stale StockPulse Hermes cron error states after manual script verification.
 - Documented GitHub publishing, setup, operations, architecture, security, examples, verification, and permanent change discipline.
 - Added `.env.example` with only variables used by current code.
 - Added `.gitignore` protection for runtime data, caches, secrets, logs, and generated uploads.

@@ -57,6 +57,36 @@ curl -X POST http://127.0.0.1:8090/api/dispatch/<dispatch_id>/cancel
 
 Use the Dispatch UI or workflow timeline drawer. The API records `last_output_chunk`, `last_error_chunk`, `stdout_tail`, `stderr_tail`, `exit_code`, and `failure_reason`.
 
+## Scheduled jobs audit
+
+Run the full cron/timer/scheduler audit:
+
+```bash
+cd /root/mission-control
+./scripts/audit_scheduled_jobs.sh
+```
+
+Expected final marker:
+
+```text
+SCHEDULED_JOBS_AUDIT_OK
+```
+
+Current audit report:
+
+```text
+docs/scheduled_jobs_audit_2026-05-31.md
+```
+
+Operational rules:
+
+- Do not blindly disable failing jobs.
+- Reproduce manually before fixing.
+- Apply the smallest safe fix.
+- Verify both manual execution and scheduler state.
+- Keep logs redirected with `>> ... 2>&1`.
+- Never print or commit credentials.
+
 ## Run verification
 
 ```bash
