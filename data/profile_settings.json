@@ -1,0 +1,67 @@
+{
+  "profile_mode": "manual",
+  "default_profile": "Default",
+  "routing_hints": {
+    "Coder": [
+      "code",
+      "coding",
+      "debug",
+      "bug",
+      "fix",
+      "implement",
+      "devops",
+      "linux"
+    ],
+    "ContentCreator": [
+      "post",
+      "tweet",
+      "x post",
+      "article",
+      "instagram",
+      "youtube",
+      "shorts",
+      "reel"
+    ],
+    "DeepResearch": [
+      "research",
+      "investigate",
+      "compare",
+      "comparison",
+      "analysis",
+      "analyze",
+      "fact",
+      "check"
+    ],
+    "MarketAnalyst": [
+      "stock",
+      "nifty",
+      "sensex",
+      "bse",
+      "nse",
+      "indian stock",
+      "us stock",
+      "mutual fund"
+    ],
+    "Tutor": [
+      "teach",
+      "learn",
+      "explain",
+      "tutorial",
+      "lesson",
+      "course",
+      "quiz",
+      "question"
+    ],
+    "Default": [
+      "orchestrate",
+      "coordinate",
+      "plan",
+      "workflow",
+      "pipeline",
+      "multi",
+      "dispatch",
+      "route"
+    ]
+  },
+  "last_updated": "2026-05-31T06:52:15+00:00"
+}

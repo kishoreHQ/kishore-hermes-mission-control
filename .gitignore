@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.secret
+*.token
+*.key
+credentials.json
+client_secret*.json
+service-account*.json
+
+# Runtime data
+data/*.jsonl
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+data/workflows_multi.json
+data/tasks.json
+data/nightly_builds.json
+data/uploads/
+logs/
+*.log
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/
+
+# Node/cache
+node_modules/
+.cache/

@@ -1,0 +1,12 @@
+{
+  "profile": "Default",
+  "title": "Sample dispatch",
+  "type": "standalone",
+  "prompt": "Say hello in one line.",
+  "timeout_seconds": 120,
+  "retry_policy": {
+    "retry_count": 1,
+    "retry_delay_seconds": 10,
+    "retry_on": ["timeout", "provider_error", "rate_limited", "nonzero_exit"]
+  }
+}

@@ -1,0 +1,17 @@
+[Unit]
+Description=Mission Control Workflow Dashboard
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/mission-control
+Environment=MISSION_CONTROL_HOST=127.0.0.1
+Environment=MISSION_CONTROL_PORT=8090
+ExecStart=/usr/bin/python3 /root/mission-control/server.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

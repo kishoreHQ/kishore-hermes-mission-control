@@ -1,0 +1,32 @@
+{
+  "title": "Sample content workflow",
+  "description": "Research a topic, draft content, and synthesize final output.",
+  "coordinator_profile": "Default",
+  "subtasks": [
+    {
+      "id": "research",
+      "title": "Research topic",
+      "profile": "DeepResearch",
+      "prompt": "Find 5 current points about the topic. Return concise bullets.",
+      "timeout_seconds": 300,
+      "retry_policy": {
+        "retry_count": 1,
+        "retry_delay_seconds": 10,
+        "retry_on": ["timeout", "provider_error", "rate_limited", "nonzero_exit"]
+      }
+    },
+    {
+      "id": "draft",
+      "title": "Draft content",
+      "profile": "ContentCreator",
+      "depends_on": ["research"],
+      "prompt": "Turn the research into a short post and caption.",
+      "timeout_seconds": 300,
+      "retry_policy": {
+        "retry_count": 1,
+        "retry_delay_seconds": 10,
+        "retry_on": ["timeout", "provider_error", "rate_limited", "nonzero_exit"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mission Control · Hermes</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<div class="mc-shell">
+  <!-- Sidebar -->
+  <aside class="mc-sidebar">
+    <div class="mc-sidebar-brand"><span>H</span><span>Mission Control</span></div>
+    <nav class="mc-nav">
+      <button class="mc-nav-item active" data-scroll="home"><span class="nav-icon">⌂</span> Home</button>
+      <button class="mc-nav-item" data-scroll="runs-section"><span class="nav-icon">⏵</span> Runs</button>
+      <button class="mc-nav-item" data-scroll="workflows-section"><span class="nav-icon">🔄</span> Workflows</button>
+      <button class="mc-nav-item" data-scroll="dispatch-section"><span class="nav-icon">⚡</span> Dispatch</button>
+      <button class="mc-nav-item" data-scroll="agents-section"><span class="nav-icon">◈</span> Agents</button>
+      <button class="mc-nav-item" data-scroll="tasks-section"><span class="nav-icon">▦</span> Tasks</button>
+      <div class="mc-nav-divider"></div>
+      <button class="mc-nav-item" data-scroll="services-section"><span class="nav-icon">▣</span> Services</button>
+      <button class="mc-nav-item" data-scroll="logs-section"><span class="nav-icon">☰</span> Logs</button>
+      <button class="mc-nav-item" data-scroll="nightly-section"><span class="nav-icon">☾</span> Nightly</button>
+      <button class="mc-nav-item" data-scroll="cron-section"><span class="nav-icon">⏱</span> Cron</button>
+      <button class="mc-nav-item" data-scroll="docs-section"><span class="nav-icon">?</span> Docs</button>
+    </nav>
+    <div class="mc-sidebar-foot">
+      <span class="pulse"></span>
+      <div><strong>Operational</strong><br>Safe direct · medium confirmed · high blocked</div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="mc-content" id="contentArea">
+    <!-- Top Bar -->
+    <header class="mc-topbar">
+      <div class="mc-search">
+        <span class="mc-search-icon">⌕</span>
+        <input id="searchInput" placeholder="Search runs, workflows, services…" />
+        <kbd>⌘K</kbd>
+      </div>
+      <div class="mc-topbar-actions">
+        <select id="profileMode" onchange="setProfileMode(this.value)">
+          <option value="auto">🔄 Auto</option><option value="manual">👆 Manual</option>
+        </select>
+        <select id="profileSelect" disabled onchange="setManualProfile(this.value)">
+          <option value="">Auto-selected</option>
+          <option value="Default">Default</option><option value="Coder">Coder</option>
+          <option value="ContentCreator">ContentCreator</option>
+          <option value="DeepResearch">DeepResearch</option>
+          <option value="MarketAnalyst">MarketAnalyst</option><option value="Tutor">Tutor</option>
+        </select>
+        <button class="mc-btn mc-btn-secondary" onclick="refresh()">↻ Refresh</button>
+        <button class="mc-btn mc-btn-secondary" onclick="sendSummary()">Send Summary</button>
+      </div>
+    </header>
+
+    <div class="mc-content-inner" id="mainContent">
+
+      <!-- HOME: Command Center -->
+      <section id="home">
+        <!-- Health Summary -->
+        <div class="mc-section">
+          <div class="mc-section-head"><h2>System Health</h2><span class="subtitle" id="healthUpdated"></span></div>
+          <div id="healthBar" class="mc-btn-group"></div>
+        </div>
+
+        <!-- Metrics -->
+        <div class="mc-section">
+          <div id="metricsRow" class="mc-metrics"></div>
+        </div>
+
+        <!-- Running Now -->
+        <div class="mc-section">
+          <div class="mc-section-head"><h2>Running Now</h2><span class="subtitle" id="runningCount"></span></div>
+          <div id="runningNowScroll" class="mc-hscroll"></div>
+        </div>
+
+        <!-- Needs Attention -->
+        <div class="mc-section">
+          <div class="mc-section-head"><h2>Needs Attention</h2></div>
+          <div id="needsAttention" class="cards-grid"></div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="mc-section">
+          <div class="mc-section-head"><h2>Quick Actions</h2></div>
+          <div id="quickActions" class="mc-btn-group"></div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="mc-section">
+          <div class="mc-section-head"><h2>Recent Activity</h2></div>
+          <div id="activityFeed" class="mc-activity"></div>
+        </div>
+      </section>
+
+      <!-- RUNS -->
+      <section id="runs-section">
+        <div class="mc-section">
+          <div class="mc-section-head"><h2>Runs</h2></div>
+          <div id="runFilters" class="mc-filter-bar"></div>
+        </div>
+        <div id="runHistory" class="cards-grid"></div>
+      </section>
+
+      <!-- WORKFLOWS -->
+      <section id="workflows-section">
+        <div class="mc-section">
+          <div class="mc-section-head"><h2>Workflows</h2><button class="mc-btn mc-btn-primary" onclick="createWorkflow()">+ Create Workflow</button></div>
+        </div>
+        <div id="workflowList" class="cards-grid cards-grid-2"></div>
+      </section>
+
+      <!-- DISPATCH -->
+      <section id="dispatch-section">
+        <div class="mc-section">
+          <div class="mc-section-head"><h2>Dispatch Queue</h2>
+            <span class="subtitle" id="dispatchCount"></span>
+            <button class="mc-btn mc-btn-secondary" onclick="loadDispatches()">↻ Refresh</button>
+          </div>
+        </div>
+        <div id="dispatchList" class="cards-grid"></div>
+      </section>
+
+      <!-- AGENTS -->
+      <section id="agents-section">
+        <div class="mc-section"><div class="mc-section-head"><h2>Agents / Profiles</h2></div></div>
+        <div id="agentCards" class="mc-profile-grid"></div>
+      </section>
+
+      <!-- TASKS / KANBAN -->
+      <section id="tasks-section">
+        <div class="mc-section">
+          <div class="mc-section-head"><h2>Kanban</h2><button class="mc-btn mc-btn-secondary" onclick="createTask()">+ Draft Task</button></div>
+        </div>
+        <div id="taskBoard" class="mc-kanban"></div>
+      </section>
+
+      <!-- SERVICES -->
+      <section id="services-section">
+        <div class="mc-section"><div class="mc-section-head"><h2>Services</h2></div></div>
+        <div id="serviceCards" class="cards-grid"></div>
+      </section>
+
+      <!-- LOGS -->
+      <section id="logs-section">
+        <div class="mc-section">
+          <div class="mc-section-head"><h2>Logs</h2></div>
+          <select id="logServiceSelect" class="mc-filter-chip" style="margin-bottom:12px"></select>
+        </div>
+        <pre id="logsOutput" class="mc-log-viewer">Select a service to view logs.</pre>
+      </section>
+
+      <!-- NIGHTLY -->
+      <section id="nightly-section">
+        <div class="mc-section">
+          <div class="mc-section-head"><h2>Nightly Builds</h2><button class="mc-btn mc-btn-secondary" onclick="createBuild()">+ Register Build</button></div>
+        </div>
+        <div id="nightlyBuilds" class="cards-grid"></div>
+      </section>
+
+      <!-- CRON -->
+      <section id="cron-section">
+        <div class="mc-section"><div class="mc-section-head"><h2>Cron & Automation</h2></div></div>
+        <div id="reviewQueue" class="cards-grid"></div>
+        <div id="scheduledTasks" class="cards-grid" style="margin-top:16px"></div>
+      </section>
+
+      <!-- DOCS -->
+      <section id="docs-section">
+        <div class="mc-section"><div class="mc-section-head"><h2>Docs & Info</h2></div></div>
+        <div id="governancePanel"></div>
+        <div id="recentFiles" class="mc-activity" style="margin-top:16px"></div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- Drawer -->
+<div class="mc-drawer-backdrop" id="drawerBackdrop" onclick="closeDrawer()"></div>
+<div class="mc-drawer" id="drawer">
+  <div class="mc-drawer-head">
+    <h3 id="drawerTitle">Detail</h3>
+    <button class="mc-btn mc-btn-ghost" onclick="closeDrawer()" style="font-size:18px">×</button>
+  </div>
+  <div class="mc-drawer-body" id="drawerBody"></div>
+</div>
+
+<!-- Command Palette -->
+<div class="mc-palette-backdrop" id="paletteBackdrop" onclick="closePalette()"></div>
+<div class="mc-palette" id="palette">
+  <input id="paletteInput" placeholder="Type a command…" />
+  <div class="mc-palette-items" id="paletteItems"></div>
+</div>
+
+<!-- Toast container -->
+<div id="toastContainer" style="position:fixed;bottom:24px;right:24px;z-index:200;display:flex;flex-direction:column;gap:8px"></div>
+
+<script src="/app.js"></script>
+</body>
+</html>

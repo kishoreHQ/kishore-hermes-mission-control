@@ -1,0 +1,72 @@
+[
+  {
+    "id": "hermes-dashboard",
+    "name": "Existing Hermes Dashboard",
+    "port": 9119,
+    "url": "http://127.0.0.1:9119",
+    "public_url": "https://gcp-hermes.tail57c68b.ts.net/",
+    "type": "dashboard",
+    "systemd_service": "hermes-dashboard.service",
+    "health_endpoint": "/api/status",
+    "embed_path": "/",
+    "embed_supported": true,
+    "actions": ["open", "view_logs", "health_check"],
+    "notes": "Some deeper APIs require dashboard/session auth; use Mission Control adapters for actions."
+  },
+  {
+    "id": "mission-control",
+    "name": "Mission Control",
+    "port": 8090,
+    "url": "http://127.0.0.1:8090",
+    "public_url": "https://gcp-hermes.tail57c68b.ts.net:8090/",
+    "type": "mission-control",
+    "systemd_service": "mission-control.service",
+    "health_endpoint": "/healthz",
+    "embed_path": "/",
+    "embed_supported": false,
+    "actions": ["refresh_all", "view_logs", "create_nightly_build", "export_status"],
+    "notes": "Primary control plane."
+  },
+  {
+    "id": "hermes-webui",
+    "name": "Hermes WebUI",
+    "port": 8787,
+    "url": "http://127.0.0.1:8787",
+    "public_url": "https://gcp-hermes.tail57c68b.ts.net:8787/",
+    "type": "dashboard",
+    "systemd_service": "hermes-webui.service",
+    "health_endpoint": "/api/system/health",
+    "embed_path": "/",
+    "embed_supported": true,
+    "actions": ["open", "view_logs", "health_check", "restart_service"],
+    "notes": "Native read APIs available for health, insights, wiki, and skill usage."
+  },
+  {
+    "id": "claw3d",
+    "name": "Claw3D",
+    "port": 3000,
+    "url": "http://127.0.0.1:3000",
+    "public_url": "https://gcp-hermes.tail57c68b.ts.net:3000/office",
+    "type": "app",
+    "systemd_service": "claw3d-studio.service",
+    "health_endpoint": "/api/health",
+    "embed_path": "/office",
+    "embed_supported": true,
+    "actions": ["open", "view_logs", "health_check", "restart_service", "run_standup"],
+    "notes": "Embed /office first; deeper native integration can use Claw3D office/task APIs."
+  },
+  {
+    "id": "claw3d-adapter",
+    "name": "Claw3D Adapter",
+    "port": 18789,
+    "url": "http://127.0.0.1:18789",
+    "public_url": "https://gcp-hermes.tail57c68b.ts.net:18789/",
+    "type": "adapter",
+    "systemd_service": "claw3d-adapter.service",
+    "health_endpoint": "/",
+    "embed_path": "/",
+    "embed_supported": false,
+    "actions": ["view_logs", "health_check", "test_adapter", "restart_service"],
+    "notes": "Primarily WebSocket; HTTP root reports adapter OK."
+  }
+]

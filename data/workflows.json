@@ -1,0 +1,112 @@
+{
+  "updated_by": "Hermes Mission Control bootstrap",
+  "workflows": [
+    {
+      "id": "hermes-core",
+      "name": "Hermes Core",
+      "icon": "◆",
+      "owner": "Hermes",
+      "status": "working",
+      "lane": "ops",
+      "purpose": "Primary Telegram gateway, dashboard, skills, memory, cron, config sync.",
+      "runtime": "/root/.hermes",
+      "services": ["hermes-gateway.service", "hermes-dashboard.service", "hermes-webui.service"],
+      "ports": [8787],
+      "cadence": "Always-on + daily config sync at 08:00 UTC",
+      "next_steps": ["Keep config sync green", "Add Gateway event stream", "Expose tool inventory"]
+    },
+    {
+      "id": "ai-creator",
+      "name": "AI Creator Pipeline",
+      "icon": "✦",
+      "owner": "Content Ops",
+      "status": "blocked",
+      "lane": "content",
+      "purpose": "4 AI avatar accounts: Priya/Fitness, Aanya/Fashion, Mira/Spiritual, Odia/life-advice.",
+      "runtime": "/root/aicreator",
+      "services": [],
+      "ports": [],
+      "cadence": "Daily IST pipeline: prepare → image → video → assemble → Telegram approval → publish → analytics",
+      "blocker": "secrets.yaml still has placeholder API keys/Meta credentials.",
+      "next_steps": ["Fill FAL/Kling/Telegram/Meta credentials", "Re-open UFW 22/tcp public access if needed", "Run one dry-run character pipeline"]
+    },
+    {
+      "id": "career-ops",
+      "name": "Career Ops",
+      "icon": "⌁",
+      "owner": "Career Agent",
+      "status": "scheduled",
+      "lane": "career",
+      "purpose": "Staff/Principal Platform Engineering job search, scans, CV tailoring, interview prep.",
+      "runtime": "/root/career-ops",
+      "services": [],
+      "ports": [],
+      "cadence": "Daily full pipeline at 02:30 UTC via Hermes cron",
+      "next_steps": ["Review daily picks", "Prepare company-specific interview notes", "Keep story bank updated"]
+    },
+    {
+      "id": "stockforge",
+      "name": "StockForge",
+      "icon": "▲",
+      "owner": "Market Agent",
+      "status": "scheduled",
+      "lane": "finance",
+      "purpose": "Indian stock market intelligence with Nifty 200 daily picks and factor engines.",
+      "runtime": "/root/StockForge",
+      "services": [],
+      "ports": [],
+      "cadence": "Mon-Fri 07:00 IST",
+      "next_steps": ["Extract remaining AI personas", "Validate daily picks report", "Add risk/position summary panel"]
+    },
+    {
+      "id": "claw3d",
+      "name": "Claw3D Office",
+      "icon": "◈",
+      "owner": "Agent Office",
+      "status": "working",
+      "lane": "visualization",
+      "purpose": "3D virtual office for AI agents and OpenClaw adapter.",
+      "runtime": "/root/claw3d",
+      "services": ["claw3d-studio.service", "claw3d-adapter.service"],
+      "ports": [3000, 18789],
+      "cadence": "Always-on via systemd + Tailscale HTTPS",
+      "next_steps": ["Connect mission-control links", "Map workflows to rooms", "Add live agent presence"]
+    },
+    {
+      "id": "memory-wiki",
+      "name": "Memory Wiki",
+      "icon": "◐",
+      "owner": "Knowledge Ops",
+      "status": "scheduled",
+      "lane": "knowledge",
+      "purpose": "Daily regeneration of searchable memory/wiki artifacts.",
+      "runtime": "/root/memory-wiki",
+      "services": [],
+      "ports": [],
+      "cadence": "Daily 03:15 UTC crontab",
+      "next_steps": ["Expose wiki link", "Add freshness check", "Add failed-regeneration alert"]
+    },
+    {
+      "id": "contentforge",
+      "name": "ContentForge",
+      "icon": "✍",
+      "owner": "Social Agent",
+      "status": "idle",
+      "lane": "content",
+      "purpose": "Discovery → drafting → approval-ready posts for @devopsbyte and content experiments.",
+      "runtime": "/tmp/ContentForge + /root/.hermes/contentforge",
+      "services": [],
+      "ports": [],
+      "cadence": "On demand / workflow skills",
+      "next_steps": ["Add queue count", "Add xurl auth status", "Add draft approval panel"]
+    }
+  ],
+  "agents": [
+    {"name":"Hermes","role":"Orchestrator","status":"working","memory":"Gateway, skills, cron, infra"},
+    {"name":"Scout","role":"Research","status":"idle","memory":"Trends, jobs, markets"},
+    {"name":"Quill","role":"Writer","status":"idle","memory":"Captions, posts, scripts"},
+    {"name":"Pixel","role":"Visuals","status":"blocked","memory":"Image/video generation awaits keys"},
+    {"name":"Codex","role":"Builder","status":"working","memory":"Scripts, dashboards, automation"},
+    {"name":"Echo","role":"Notifier","status":"scheduled","memory":"Telegram approvals and reports"}
+  ]
+}

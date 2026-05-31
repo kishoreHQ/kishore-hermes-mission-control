@@ -1,0 +1,21 @@
+{
+  "title": "Hermes Mission Control",
+  "sections": [
+    {
+      "name": "Action Safety Rules",
+      "body": "Safe actions run directly. Medium-risk actions require an approval code. High-risk actions are blocked until explicitly enabled. Secrets are never displayed; only configured/missing status is shown."
+    },
+    {
+      "name": "Nightly Build Process",
+      "body": "Nightly Build → Testing → Feedback → Fix → Promote to Core Feature. Experimental work must be registered here before promotion."
+    },
+    {
+      "name": "Integrated Services",
+      "body": "Mission Control integrates Hermes Dashboard, Hermes WebUI, Claw3D, Claw3D Adapter, and its own control API. Embeds are a bridge; native panels become the final interface."
+    },
+    {
+      "name": "Rollback",
+      "body": "Rollback baseline exists in git. Run: cd /root/mission-control && git reset --hard HEAD && systemctl restart mission-control.service."
+    }
+  ]
+}
