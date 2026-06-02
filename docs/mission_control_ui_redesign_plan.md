@@ -320,43 +320,23 @@ All components use consistent BEM-style naming:
 
 ## Implementation Plan
 
-### Phase 1: CSS Foundation
-1. Rewrite CSS with new color system, typography, spacing
-2. Create component classes
-3. Ensure existing HTML still renders
+### Phase 0: Branch and Baseline
+Status: complete on branch `feat/ui-revamp`; tagged the pre-revamp baseline as `pre-ui-revamp` and verified the unchanged baseline with `VERIFY_OK`.
 
-### Phase 2: Shell + Navigation
-1. New sidebar with 10 items
-2. Top bar with search + actions
-3. Command palette (Cmd+K)
-4. Drawer system
+### Phase 1: Palette and Navigation Consistency
+Status: complete. The command palette is hidden by default, `openPalette()`/`closePalette()` toggle both the palette and backdrop, and sidebar active state is driven by `navTo()` rather than static initial markup.
 
-### Phase 3: Home Page (Command Center)
-1. Health summary
-2. Metric cards
-3. Running now
-4. Recent failures
-5. Quick actions
-6. Activity feed
+### Phase 2: Design-System Pass
+Pending. Retune the existing token values without renaming them, establish a clearer elevation ladder, tighten the type ramp, add tabular numerals, dim chrome, and add unmistakable failed/degraded glyphs while preserving the current status class map.
 
-### Phase 4: Remaining Pages
-1. Runs (with detail drawer)
-2. Workflows (with detail drawer)
-3. Agents (with detail drawer)
-4. Tasks/Kanban
-5. Services
-6. Logs
-7. Nightly
-8. Cron
-9. Docs
+### Phase 3: Home Cockpit
+Pending. Add the status hero verdict, bento health/metric grid, and de-duplicated Needs Attention view with synthetic test data hidden behind a small reveal toggle.
 
-### Phase 5: Interactions
-1. Drawer open/close
-2. Toast system
-3. Skeleton loading
-4. Empty states
-5. Error states
-6. Confirmation modal
+### Phase 4: Execution Timelines
+Pending. Upgrade workflow and dispatch details to colored-dot timelines, surface pending/running steps first, and collapse dispatch stdout/stderr live boxes by default.
+
+### Phase 5: Density and Width
+Pending. Replace the fixed content max width with fluid responsive grids, tighten card padding, and polish empty/loading states while preserving the existing mobile bottom-bar breakpoint.
 
 ## Responsive Behavior
 

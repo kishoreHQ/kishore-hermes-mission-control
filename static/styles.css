@@ -157,7 +157,8 @@ pre{font-family:var(--mono);font-size:12px;line-height:1.6;overflow:auto}
 /* Command Palette */
 .mc-palette-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;display:none}
 .mc-palette-backdrop.open{display:block}
-.mc-palette{position:fixed;top:15%;left:50%;transform:translateX(-50%);width:520px;max-width:90vw;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:0 20px 60px rgba(0,0,0,.5);z-index:301;overflow:hidden}
+.mc-palette{display:none;position:fixed;top:15%;left:50%;transform:translateX(-50%);width:520px;max-width:90vw;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:0 20px 60px rgba(0,0,0,.5);z-index:301;overflow:hidden}
+.mc-palette.open{display:block}
 .mc-palette input{width:100%;padding:14px 18px;font-size:15px;border:0;border-bottom:1px solid var(--border);background:transparent;color:var(--text);outline:0}
 .mc-palette input::placeholder{color:var(--text-muted)}
 .mc-palette-items{max-height:320px;overflow-y:auto}

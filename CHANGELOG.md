@@ -4,6 +4,8 @@ Every future commit that changes behavior, setup, API, UI, workflow, config, or 
 
 ## Unreleased
 
+- Phase 1 UI revamp: fixed the command palette so it is hidden by default and opens/closes with its backdrop.
+- Phase 1 UI revamp: made sidebar active state rely on `navTo()` instead of static initial markup.
 - Added scheduled-jobs audit runbook and `scripts/audit_scheduled_jobs.sh`.
 - Documented 2026-05-31 cron/systemd/Hermes scheduler audit in `docs/scheduled_jobs_audit_2026-05-31.md`.
 - Fixed Morning Content Intelligence Hermes cron by converting it to no-agent script mode.

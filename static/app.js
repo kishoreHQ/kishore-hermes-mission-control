@@ -620,8 +620,8 @@ const PALETTE_ACTIONS=[
 ];
 
 function openPalette(){
-  $('paletteBackdrop').classList.add('open');$('paletteInput').value='';$('paletteInput').focus();renderPaletteItems('')}
-function closePalette(){$('paletteBackdrop').classList.remove('open')}
+  $('palette').classList.add('open');$('paletteBackdrop').classList.add('open');$('paletteInput').value='';$('paletteInput').focus();renderPaletteItems('')}
+function closePalette(){$('palette').classList.remove('open');$('paletteBackdrop').classList.remove('open')}
 
 function renderPaletteItems(query){
   const q=query.toLowerCase();const items=PALETTE_ACTIONS.filter(a=>a.label.toLowerCase().includes(q));
