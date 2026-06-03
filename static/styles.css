@@ -70,7 +70,9 @@ pre{font-family:var(--mono);font-size:12px;line-height:1.6;overflow:auto;font-va
 
 /* Metric Cards */
 .mc-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.mc-bento{grid-template-columns:repeat(6,minmax(0,1fr))}
 .mc-metric{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:4px;box-shadow:inset 0 1px 0 rgba(255,255,255,.018)}
+.mc-metric-wide{grid-column:span 2}
 .mc-metric-value{font-size:22px;font-weight:700;letter-spacing:0;line-height:1;font-variant-numeric:tabular-nums}
 .mc-metric-label{font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em}
 .mc-metric-detail{font-size:11px;color:var(--text-muted)}
@@ -82,6 +84,7 @@ pre{font-family:var(--mono);font-size:12px;line-height:1.6;overflow:auto;font-va
 /* Card Base */
 .mc-card{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:8px;transition:border-color .15s,background .15s;box-shadow:inset 0 1px 0 rgba(255,255,255,.018)}
 .mc-card:hover{background:var(--bg-elevated);border-color:var(--border-hover);box-shadow:var(--shadow)}
+.mc-card-attention{border-color:rgba(245,158,11,.28)}
 .mc-card-title{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
 .mc-card-meta{font-size:11px;color:var(--text-secondary);font-variant-numeric:tabular-nums}
 .mc-card-body{font-size:12px;color:var(--text-secondary);line-height:1.5}
@@ -147,6 +150,18 @@ pre{font-family:var(--mono);font-size:12px;line-height:1.6;overflow:auto;font-va
 /* Empty State */
 .mc-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;gap:10px;color:var(--text-muted)}
 .mc-empty-icon{font-size:32px;opacity:.5}
+
+/* Home cockpit */
+.mc-status-hero{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px 20px;margin-bottom:4px;background:linear-gradient(180deg,var(--bg-elevated),var(--bg-surface));border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow)}
+.mc-status-hero-copy{display:flex;flex-direction:column;gap:6px;min-width:0}
+.mc-status-kicker{display:flex}
+.mc-status-hero h1{font-size:22px;font-weight:720;line-height:1.15;letter-spacing:0}
+.mc-status-hero p{font-size:12px;color:var(--text-secondary)}
+.mc-status-hero-count{display:grid;place-items:center;min-width:104px;padding:12px;border-radius:var(--radius-sm);background:var(--bg-base);border:1px solid var(--border)}
+.mc-status-hero-count span{font-size:28px;font-weight:760;line-height:1;color:var(--text)}
+.mc-status-hero-count small{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em}
+.mc-toggle{display:inline-flex;align-items:center;gap:7px;color:var(--text-secondary);font-size:11px;white-space:nowrap}
+.mc-toggle input{accent-color:var(--accent)}
 
 /* Skeleton Loading */
 .mc-skeleton{background:linear-gradient(90deg,var(--bg-surface) 25%,var(--bg-elevated) 50%,var(--bg-surface) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--radius-sm)}
@@ -214,4 +229,7 @@ pre{font-family:var(--mono);font-size:12px;line-height:1.6;overflow:auto;font-va
   .mc-content{height:calc(100vh - 52px - 56px);padding:16px}
   .mc-drawer{width:100vw;max-width:100vw}
   .mc-kanban{grid-template-columns:1fr}
+  .mc-bento{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mc-metric-wide{grid-column:span 1}
+  .mc-status-hero{align-items:flex-start;flex-direction:column}
 }

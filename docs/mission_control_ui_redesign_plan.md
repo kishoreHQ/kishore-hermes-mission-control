@@ -330,7 +330,7 @@ Status: complete. The command palette is hidden by default, `openPalette()`/`clo
 Status: complete. Existing token names were preserved while values were retuned for clearer base/surface/elevated separation, dimmer sidebar/topbar chrome, tighter type sizing, tabular numerals across the UI, and warning/error badge glyphs on top of the existing dot-and-label pattern.
 
 ### Phase 3: Home Cockpit
-Pending. Add the status hero verdict, bento health/metric grid, and de-duplicated Needs Attention view with synthetic test data hidden behind a small reveal toggle.
+Status: complete. Home now includes an operational verdict hero derived from status and service health signals, bento-style metric tiles, a service issue metric, and de-duplicated Needs Attention cards. Synthetic test records are hidden by default and can be revealed with the Show test data toggle.
 
 ### Phase 4: Execution Timelines
 Pending. Upgrade workflow and dispatch details to colored-dot timelines, surface pending/running steps first, and collapse dispatch stdout/stderr live boxes by default.

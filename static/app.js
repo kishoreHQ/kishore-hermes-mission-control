@@ -1,12 +1,12 @@
 // Mission Control — Calm Command JavaScript
-const S={data:null,runFilter:'',activeSection:'home',drawerOpen:false};
+const S={data:null,serviceHealth:null,runFilter:'',activeSection:'home',drawerOpen:false,showTestData:false};
 function $(id){return document.getElementById(id)}
 function esc(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 function fmt(n){const v=Number(n||0);return v>=1_000_000?`${(v/1_000_000).toFixed(1)}M`:v>=1_000?v.toLocaleString():String(v)}
 function fd(v){if(!v)return'—';const d=new Date(v);return Number.isNaN(d.getTime())?String(v):d.toLocaleString(undefined,{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}
 function dur(s){if(s==null)return'';const n=Number(s);if(n<60)return`${n.toFixed(1)}s`;if(n<3600)return`${Math.floor(n/60)}m`;return`${Math.floor(n/3600)}h`}
 async function api(path,opts={}){const r=await fetch(path,{cache:'no-store',...opts});const d=await r.json();if(!r.ok)throw new Error(d.error||r.statusText);return d}
-async function load(){try{S.data=await api(`/api/status?_=${Date.now()}`);render()}catch(e){$('mainContent').insertAdjacentHTML('afterbegin',`<div class="mc-error-banner">⚠ ${esc(e.message)} — Retrying in 30s</div>`)}}
+async function load(){try{S.data=await api(`/api/status?_=${Date.now()}`);try{S.serviceHealth=await api('/api/services/health')}catch(_){S.serviceHealth=null}render()}catch(e){$('mainContent').insertAdjacentHTML('afterbegin',`<div class="mc-error-banner">⚠ ${esc(e.message)} — Retrying in 30s</div>`)}}
 
 // ── Navigation ────────────────────────────────────────────────
 function navTo(section){
@@ -74,6 +74,7 @@ function D(){return S.data||{}}
 // ═══════════════════════════════════════════════════════════════
 function renderHome(){
   if(!S.data) return;
+  renderStatusHero();
   renderHealthBar();
   renderMetrics();
   renderRunningNow();
@@ -83,8 +84,48 @@ function renderHome(){
   $('home').style.display='block';
 }
 
+function serviceItems(){return S.serviceHealth||D().services||[]}
+function statusBucket(status){
+  if(['online','succeeded','completed','active'].includes(status))return'ok';
+  if(['degraded','warning','needs_review','blocked','paused'].includes(status))return'warn';
+  if(['offline','failed','error','timed_out','retry_exhausted','cancelled'].includes(status))return'err';
+  if(['running','in_progress','retrying'].includes(status))return'info';
+  return'idle';
+}
+function isTestNoise(item){
+  const name=String(item?.title||item?.name||item?.workflow_title||item?.id||'').toUpperCase();
+  const method=String(item?.dispatch_method||item?.method||'');
+  return /^FINAL\b/.test(name)||/^VERIFY\b/.test(name)||/\bTEST$/.test(name)||/POPEN$/.test(name)||['timeout_test','streaming_test','stderr_test'].includes(method);
+}
+function renderStatusHero(){
+  const services=serviceItems();
+  const degraded=services.filter(s=>statusBucket(s.status)!=='ok');
+  const failedRuns=(D().recent_runs||[]).filter(r=>statusBucket(r.status)==='err'&&!isTestNoise(r));
+  const review=(D().review_queue||[]).filter(j=>!isTestNoise(j));
+  const blocked=(D().workflows||[]).filter(w=>w.runtime_state==='blocked'||w.status==='blocked'||w.blocker);
+  const failures=failedRuns.length;
+  const attention=degraded.length+failures+review.length+blocked.length;
+  const level=attention?((degraded.length+failures)>0?'err':'warn'):'ok';
+  const verdict=attention?[
+    degraded.length?`${degraded.length} service${degraded.length===1?'':'s'} degraded`:null,
+    failures?`${failures} run failure${failures===1?'':'s'}`:null,
+    review.length?`${review.length} review item${review.length===1?'':'s'}`:null,
+    blocked.length?`${blocked.length} blocked workflow${blocked.length===1?'':'s'}`:null
+  ].filter(Boolean).join(' · '):'All systems operational';
+  const active=(D().active_runs||[]).length;
+  $('statusHero').innerHTML=`<div class="mc-status-hero-copy">
+    <div class="mc-status-kicker">${badge(level,level==='ok'?'OPERATIONAL':level==='warn'?'ATTENTION':'ACTION REQUIRED')}</div>
+    <h1>${esc(verdict)}</h1>
+    <p>${esc(active)} active run${active===1?'':'s'} · ${esc(services.length)} monitored service${services.length===1?'':'s'} · updated ${esc(fd(new Date().toISOString()))}</p>
+  </div>
+  <div class="mc-status-hero-count">
+    <span>${esc(attention)}</span>
+    <small>needs attention</small>
+  </div>`;
+}
+
 function renderHealthBar(){
-  const svcs=D().services||[];
+  const svcs=serviceItems();
   const html=svcs.map(s=>{
     const cls=s.status==='online'?'ok':s.status==='degraded'?'warn':'err';
     return `<span class="mc-badge mc-badge-${cls}">${esc(s.name)}</span>`;
@@ -99,15 +140,17 @@ function renderMetrics(){
   const wfs=(D().workflows_multi||[]).length;
   const failedRuns=(D().recent_runs||[]).filter(r=>r.status==='failed').length;
   const review=s.review_items||0;
+  const degraded=serviceItems().filter(x=>statusBucket(x.status)!=='ok').length;
   const items=[
-    {v:active,l:'Running',c:'#60a5fa'},
-    {v:failedRuns,l:'Failed',c:failedRuns?'#ef4444':'#8892a8'},
+    {v:active,l:'Running',c:'#60a5fa',big:true},
+    {v:failedRuns,l:'Failed',c:failedRuns?'#ef4444':'#8892a8',big:failedRuns>0},
     {v:review,l:'Needs Review',c:review?'#f59e0b':'#8892a8'},
-    {v:wfs,l:'Workflows',c:'#4da6ff'},
-    {v:fmt(s.tokens),l:'Tokens',c:'#8892a8'},
+    {v:degraded,l:'Service Issues',c:degraded?'#ef4444':'#34d399'},
+    {v:wfs,l:'Workflows',c:'#69a7ff'},
+    {v:fmt(s.tokens),l:'Tokens',c:'#9aa4b5'},
     {v:`$${Number(s.cost||0).toFixed(2)}`,l:'Cost',c:'#34d399'}
   ];
-  $('metricsRow').innerHTML=items.map(i=>`<div class="mc-metric"><span class="mc-metric-value" style="color:${i.c}">${esc(i.v)}</span><span class="mc-metric-label">${esc(i.l)}</span></div>`).join('');
+  $('metricsRow').innerHTML=items.map(i=>`<div class="mc-metric ${i.big?'mc-metric-wide':''}"><span class="mc-metric-value" style="color:${i.c}">${esc(i.v)}</span><span class="mc-metric-label">${esc(i.l)}</span></div>`).join('');
 }
 
 function renderRunningNow(){
@@ -122,18 +165,28 @@ function renderRunningNow(){
 }
 
 function renderNeedsAttention(){
-  const failedRuns=(D().recent_runs||[]).filter(r=>r.status==='failed').slice(0,4);
-  const reviewJobs=(D().review_queue||[]).slice(0,3);
+  const seen=new Set();
   const items=[];
-  failedRuns.forEach(r=>items.push(`<article class="mc-card">
+  const push=(key,html)=>{if(!seen.has(key)){seen.add(key);items.push(html)}};
+  serviceItems().filter(s=>statusBucket(s.status)!=='ok'&&(S.showTestData||!isTestNoise(s))).forEach(s=>push(`svc:${s.id||s.name}`,`<article class="mc-card mc-card-attention">
+    <div class="mc-card-title">${badge(s.status,s.status)} ${esc(s.name)}</div>
+    <div class="mc-card-body">${esc(s.health?.summary||s.systemd?.active||s.notes||'Service health needs review')}</div>
+    <div class="mc-btn-group"><button class="mc-btn mc-btn-xs mc-btn-secondary" onclick="navTo('services-section')">Services</button></div>
+  </article>`));
+  (D().recent_runs||[]).filter(r=>r.status==='failed'&&(S.showTestData||!isTestNoise(r))).slice(0,5).forEach(r=>push(`run:${r.run_id||r.title}`,`<article class="mc-card mc-card-attention">
     <div class="mc-card-title">${badge('err','FAILED')} ${esc(r.title)}</div>
     <div class="mc-card-body">${esc(r.error?.message||r.error?.summary||'No error details')}</div>
     <div class="mc-btn-group"><button class="mc-btn mc-btn-xs mc-btn-secondary" onclick="openRunDrawer('${esc(r.run_id)}')">View</button></div>
   </article>`));
-  reviewJobs.forEach(j=>items.push(`<article class="mc-card">
+  (D().review_queue||[]).filter(j=>S.showTestData||!isTestNoise(j)).slice(0,5).forEach(j=>push(`review:${j.id||j.name}`,`<article class="mc-card mc-card-attention">
     <div class="mc-card-title">${badge('warn','NEEDS REVIEW')} ${esc(j.name)}</div>
     <div class="mc-card-body">${esc(j.last_error||'Check latest run')}</div>
     <div class="mc-btn-group"><button class="mc-btn mc-btn-xs mc-btn-secondary" data-safe-action="open_output" data-job="${esc(j.id)}">Output</button></div>
+  </article>`));
+  (D().workflows||[]).filter(w=>(w.runtime_state==='blocked'||w.status==='blocked'||w.blocker)&&(S.showTestData||!isTestNoise(w))).slice(0,5).forEach(w=>push(`wf:${w.id||w.name}`,`<article class="mc-card mc-card-attention">
+    <div class="mc-card-title">${badge('warn','BLOCKED')} ${esc(w.name||w.title)}</div>
+    <div class="mc-card-body">${esc(w.blocker||w.purpose||'Workflow is blocked')}</div>
+    <div class="mc-btn-group"><button class="mc-btn mc-btn-xs mc-btn-secondary" onclick="navTo('workflows-section')">Workflows</button></div>
   </article>`));
   if(!items.length) items.push('<div class="mc-empty"><span class="mc-empty-icon">✓</span>Nothing needs attention.</div>');
   $('needsAttention').innerHTML=items.join('');
@@ -664,6 +717,7 @@ document.body.addEventListener('click',e=>{
 });
 document.querySelectorAll('.mc-nav-item').forEach(btn=>btn.addEventListener('click',()=>navTo(btn.dataset.scroll)));
 $('searchInput').addEventListener('input',e=>{/* future: filter within current section */});
+$('showTestData').addEventListener('change',e=>{S.showTestData=e.target.checked;renderNeedsAttention();renderStatusHero()});
 $('paletteInput').addEventListener('input',e=>renderPaletteItems(e.target.value));
 $('paletteInput').addEventListener('keydown',e=>{if(e.key==='Enter'){const sel=document.querySelector('.mc-palette-item.selected');if(sel)sel.click()}});
 

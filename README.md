@@ -130,7 +130,7 @@ Common endpoints:
 
 ## Mission Control UI
 
-The UI is a static single-page app. It shows Home, Runs, Workflows, Dispatch, Agents, Tasks, Services, Logs, Nightly, Cron, and Docs. Workflow drawers expose retry count, timeout, failure reason, dispatch ID, PID, stdout/stderr tails, resume actions, and rerun actions.
+The UI is a static single-page app. It shows Home, Runs, Workflows, Dispatch, Agents, Tasks, Services, Logs, Nightly, Cron, and Docs. Home now opens as an operations cockpit with a status verdict, bento metrics, and a de-duplicated Needs Attention feed. Synthetic test records are hidden by default and can be revealed with the Show test data toggle. Workflow drawers expose retry count, timeout, failure reason, dispatch ID, PID, stdout/stderr tails, resume actions, and rerun actions.
 
 ## Dispatch engine
 

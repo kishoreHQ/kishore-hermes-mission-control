@@ -4,6 +4,7 @@ Every future commit that changes behavior, setup, API, UI, workflow, config, or 
 
 ## Unreleased
 
+- Phase 3 UI revamp: added a home cockpit hero verdict, bento metrics, service issue signal, and de-duplicated Needs Attention cards with a Show test data toggle.
 - Phase 2 UI revamp: retuned the static design system with clearer elevation, quieter chrome, tabular numerals, and warning/error badge glyphs.
 - Phase 1 UI revamp: fixed the command palette so it is hidden by default and opens/closes with its backdrop.
 - Phase 1 UI revamp: made sidebar active state rely on `navTo()` instead of static initial markup.
