@@ -1,12 +1,12 @@
 // Mission Control — Calm Command JavaScript
-const S={data:null,runFilter:'',activeSection:'home',drawerOpen:false};
+const S={data:null,serviceHealth:null,runFilter:'',activeSection:'home',drawerOpen:false,showTestData:false};
 function $(id){return document.getElementById(id)}
 function esc(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 function fmt(n){const v=Number(n||0);return v>=1_000_000?`${(v/1_000_000).toFixed(1)}M`:v>=1_000?v.toLocaleString():String(v)}
 function fd(v){if(!v)return'—';const d=new Date(v);return Number.isNaN(d.getTime())?String(v):d.toLocaleString(undefined,{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}
 function dur(s){if(s==null)return'';const n=Number(s);if(n<60)return`${n.toFixed(1)}s`;if(n<3600)return`${Math.floor(n/60)}m`;return`${Math.floor(n/3600)}h`}
 async function api(path,opts={}){const r=await fetch(path,{cache:'no-store',...opts});const d=await r.json();if(!r.ok)throw new Error(d.error||r.statusText);return d}
-async function load(){try{S.data=await api(`/api/status?_=${Date.now()}`);render()}catch(e){$('mainContent').insertAdjacentHTML('afterbegin',`<div class="mc-error-banner">⚠ ${esc(e.message)} — Retrying in 30s</div>`)}}
+async function load(){try{S.data=await api(`/api/status?_=${Date.now()}`);try{S.serviceHealth=await api('/api/services/health')}catch(_){S.serviceHealth=null}render()}catch(e){$('mainContent').insertAdjacentHTML('afterbegin',`<div class="mc-error-banner">⚠ ${esc(e.message)} — Retrying in 30s</div>`)}}
 
 // ── Navigation ────────────────────────────────────────────────
 function navTo(section){
@@ -51,9 +51,11 @@ function toast(msg,type='ok'){
 function badge(status,label){
   const map={succeeded:'ok',completed:'ok',online:'ok',active:'ok',running:'info',in_progress:'info',
     failed:'err',error:'err',offline:'err',degraded:'warn',warning:'warn',needs_review:'warn',
-    queued:'idle',blocked:'idle',draft:'idle',paused:'idle',archived:'idle',unknown:'idle'};
+    queued:'idle',blocked:'idle',draft:'idle',paused:'idle',archived:'idle',unknown:'idle',
+    ok:'ok',warn:'warn',err:'err',info:'info',idle:'idle'};
   const cls=map[status]||'idle';
-  return `<span class="mc-badge mc-badge-${cls}">${esc(label||status)}</span>`;
+  const glyph=cls==='err'?'!':(cls==='warn'?'△':'');
+  return `<span class="mc-badge mc-badge-${cls}">${glyph?`<span class="mc-badge-glyph" aria-hidden="true">${glyph}</span>`:''}${esc(label||status)}</span>`;
 }
 
 // ── Master Render ──────────────────────────────────────────────
@@ -73,6 +75,7 @@ function D(){return S.data||{}}
 // ═══════════════════════════════════════════════════════════════
 function renderHome(){
   if(!S.data) return;
+  renderStatusHero();
   renderHealthBar();
   renderMetrics();
   renderRunningNow();
@@ -82,8 +85,61 @@ function renderHome(){
   $('home').style.display='block';
 }
 
+function serviceItems(){return S.serviceHealth||D().services||[]}
+function statusBucket(status){
+  if(['online','succeeded','completed','active'].includes(status))return'ok';
+  if(['degraded','warning','needs_review','blocked','paused'].includes(status))return'warn';
+  if(['offline','failed','error','timed_out','retry_exhausted','cancelled'].includes(status))return'err';
+  if(['running','in_progress','retrying'].includes(status))return'info';
+  return'idle';
+}
+function timelineClass(status){
+  const bucket=statusBucket(status);
+  if(['running','retrying','in_progress'].includes(status))return'running';
+  if(['queued','draft','pending','blocked','paused'].includes(status))return'queued';
+  return bucket==='ok'?'ok':bucket==='err'?'err':bucket==='warn'?'warn':'idle';
+}
+function statusPriority(status){
+  if(['running','retrying','in_progress'].includes(status))return 0;
+  if(['queued','draft','pending','blocked','paused'].includes(status))return 1;
+  if(statusBucket(status)==='err')return 2;
+  if(statusBucket(status)==='warn')return 3;
+  return 4;
+}
+function isTestNoise(item){
+  const name=String(item?.title||item?.name||item?.workflow_title||item?.id||'').toUpperCase();
+  const method=String(item?.dispatch_method||item?.method||'');
+  return /^FINAL\b/.test(name)||/^VERIFY\b/.test(name)||/\bTEST$/.test(name)||/POPEN$/.test(name)||['timeout_test','streaming_test','stderr_test'].includes(method);
+}
+function renderStatusHero(){
+  const services=serviceItems();
+  const degraded=services.filter(s=>statusBucket(s.status)!=='ok');
+  const failedRuns=(D().recent_runs||[]).filter(r=>statusBucket(r.status)==='err'&&!isTestNoise(r));
+  const review=(D().review_queue||[]).filter(j=>!isTestNoise(j));
+  const blocked=(D().workflows||[]).filter(w=>w.runtime_state==='blocked'||w.status==='blocked'||w.blocker);
+  const failures=failedRuns.length;
+  const attention=degraded.length+failures+review.length+blocked.length;
+  const level=attention?((degraded.length+failures)>0?'err':'warn'):'ok';
+  const verdict=attention?[
+    degraded.length?`${degraded.length} service${degraded.length===1?'':'s'} degraded`:null,
+    failures?`${failures} run failure${failures===1?'':'s'}`:null,
+    review.length?`${review.length} review item${review.length===1?'':'s'}`:null,
+    blocked.length?`${blocked.length} blocked workflow${blocked.length===1?'':'s'}`:null
+  ].filter(Boolean).join(' · '):'All systems operational';
+  const active=(D().active_runs||[]).length;
+  $('statusHero').innerHTML=`<div class="mc-status-hero-copy">
+    <div class="mc-status-kicker">${badge(level,level==='ok'?'OPERATIONAL':level==='warn'?'ATTENTION':'ACTION REQUIRED')}</div>
+    <h1>${esc(verdict)}</h1>
+    <p>${esc(active)} active run${active===1?'':'s'} · ${esc(services.length)} monitored service${services.length===1?'':'s'} · updated ${esc(fd(new Date().toISOString()))}</p>
+  </div>
+  <div class="mc-status-hero-count">
+    <span>${esc(attention)}</span>
+    <small>needs attention</small>
+  </div>`;
+}
+
 function renderHealthBar(){
-  const svcs=D().services||[];
+  const svcs=serviceItems();
   const html=svcs.map(s=>{
     const cls=s.status==='online'?'ok':s.status==='degraded'?'warn':'err';
     return `<span class="mc-badge mc-badge-${cls}">${esc(s.name)}</span>`;
@@ -98,15 +154,17 @@ function renderMetrics(){
   const wfs=(D().workflows_multi||[]).length;
   const failedRuns=(D().recent_runs||[]).filter(r=>r.status==='failed').length;
   const review=s.review_items||0;
+  const degraded=serviceItems().filter(x=>statusBucket(x.status)!=='ok').length;
   const items=[
-    {v:active,l:'Running',c:'#60a5fa'},
-    {v:failedRuns,l:'Failed',c:failedRuns?'#ef4444':'#8892a8'},
+    {v:active,l:'Running',c:'#60a5fa',big:true},
+    {v:failedRuns,l:'Failed',c:failedRuns?'#ef4444':'#8892a8',big:failedRuns>0},
     {v:review,l:'Needs Review',c:review?'#f59e0b':'#8892a8'},
-    {v:wfs,l:'Workflows',c:'#4da6ff'},
-    {v:fmt(s.tokens),l:'Tokens',c:'#8892a8'},
+    {v:degraded,l:'Service Issues',c:degraded?'#ef4444':'#34d399'},
+    {v:wfs,l:'Workflows',c:'#69a7ff'},
+    {v:fmt(s.tokens),l:'Tokens',c:'#9aa4b5'},
     {v:`$${Number(s.cost||0).toFixed(2)}`,l:'Cost',c:'#34d399'}
   ];
-  $('metricsRow').innerHTML=items.map(i=>`<div class="mc-metric"><span class="mc-metric-value" style="color:${i.c}">${esc(i.v)}</span><span class="mc-metric-label">${esc(i.l)}</span></div>`).join('');
+  $('metricsRow').innerHTML=items.map(i=>`<div class="mc-metric ${i.big?'mc-metric-wide':''}"><span class="mc-metric-value" style="color:${i.c}">${esc(i.v)}</span><span class="mc-metric-label">${esc(i.l)}</span></div>`).join('');
 }
 
 function renderRunningNow(){
@@ -121,18 +179,28 @@ function renderRunningNow(){
 }
 
 function renderNeedsAttention(){
-  const failedRuns=(D().recent_runs||[]).filter(r=>r.status==='failed').slice(0,4);
-  const reviewJobs=(D().review_queue||[]).slice(0,3);
+  const seen=new Set();
   const items=[];
-  failedRuns.forEach(r=>items.push(`<article class="mc-card">
+  const push=(key,html)=>{if(!seen.has(key)){seen.add(key);items.push(html)}};
+  serviceItems().filter(s=>statusBucket(s.status)!=='ok'&&(S.showTestData||!isTestNoise(s))).forEach(s=>push(`svc:${s.id||s.name}`,`<article class="mc-card mc-card-attention">
+    <div class="mc-card-title">${badge(s.status,s.status)} ${esc(s.name)}</div>
+    <div class="mc-card-body">${esc(s.health?.summary||s.systemd?.active||s.notes||'Service health needs review')}</div>
+    <div class="mc-btn-group"><button class="mc-btn mc-btn-xs mc-btn-secondary" onclick="navTo('services-section')">Services</button></div>
+  </article>`));
+  (D().recent_runs||[]).filter(r=>r.status==='failed'&&(S.showTestData||!isTestNoise(r))).slice(0,5).forEach(r=>push(`run:${r.run_id||r.title}`,`<article class="mc-card mc-card-attention">
     <div class="mc-card-title">${badge('err','FAILED')} ${esc(r.title)}</div>
     <div class="mc-card-body">${esc(r.error?.message||r.error?.summary||'No error details')}</div>
     <div class="mc-btn-group"><button class="mc-btn mc-btn-xs mc-btn-secondary" onclick="openRunDrawer('${esc(r.run_id)}')">View</button></div>
   </article>`));
-  reviewJobs.forEach(j=>items.push(`<article class="mc-card">
+  (D().review_queue||[]).filter(j=>S.showTestData||!isTestNoise(j)).slice(0,5).forEach(j=>push(`review:${j.id||j.name}`,`<article class="mc-card mc-card-attention">
     <div class="mc-card-title">${badge('warn','NEEDS REVIEW')} ${esc(j.name)}</div>
     <div class="mc-card-body">${esc(j.last_error||'Check latest run')}</div>
     <div class="mc-btn-group"><button class="mc-btn mc-btn-xs mc-btn-secondary" data-safe-action="open_output" data-job="${esc(j.id)}">Output</button></div>
+  </article>`));
+  (D().workflows||[]).filter(w=>(w.runtime_state==='blocked'||w.status==='blocked'||w.blocker)&&(S.showTestData||!isTestNoise(w))).slice(0,5).forEach(w=>push(`wf:${w.id||w.name}`,`<article class="mc-card mc-card-attention">
+    <div class="mc-card-title">${badge('warn','BLOCKED')} ${esc(w.name||w.title)}</div>
+    <div class="mc-card-body">${esc(w.blocker||w.purpose||'Workflow is blocked')}</div>
+    <div class="mc-btn-group"><button class="mc-btn mc-btn-xs mc-btn-secondary" onclick="navTo('workflows-section')">Workflows</button></div>
   </article>`));
   if(!items.length) items.push('<div class="mc-empty"><span class="mc-empty-icon">✓</span>Nothing needs attention.</div>');
   $('needsAttention').innerHTML=items.join('');
@@ -241,13 +309,17 @@ function showWfDrawer(wf){
   const failedStatuses=new Set(['failed','timed_out','retry_exhausted','cancelled']);
   const fail=sts.filter(s=>failedStatuses.has(s.status)).length;
   const syn=wf.final_synthesis;
-  const stHtml=sts.map(st=>{
+  const ordered=sts.slice().sort((a,b)=>statusPriority(a.status)-statusPriority(b.status)||(Number(a.order||0)-Number(b.order||0)));
+  const priorityHtml=ordered.filter(st=>statusPriority(st.status)<2).map(st=>`<div class="mc-timeline-priority">
+    ${badge(st.status,st.status)} <strong>${esc(st.profile)}</strong> · ${esc(st.title)} <span>${esc(st.process_status||'pending')}</span>
+  </div>`).join('');
+  const stHtml=ordered.map(st=>{
     const stdout=asTail(st.stdout_tail).slice(-6).join('\n');
     const stderr=asTail(st.stderr_tail).slice(-6).join('\n');
     const retryAttempt=st.retry_attempt??st.retries??0;
     const maxRetries=st.max_retries??st.retry_policy?.retry_count??0;
     const did=st.dispatch_id||'';
-    const errClass=failedStatuses.has(st.status)?'err':(st.status==='completed'?'ok':(st.status==='running'||st.status==='retrying'?'running':''));
+    const errClass=timelineClass(st.status);
     return `<div class="mc-timeline-step ${errClass}">
     <strong>${esc(st.profile)}</strong>: ${esc(st.title)}
     <div class="mc-card-meta">${badge(st.status,st.status)} · process: ${esc(st.process_status||'n/a')} · order: ${st.order} · retry: ${esc(retryAttempt)}/${esc(maxRetries)} · timeout: ${esc(st.timeout_seconds||120)}s · failure: ${esc(st.failure_reason||'none')}</div>
@@ -255,7 +327,7 @@ function showWfDrawer(wf){
     <div class="mc-card-meta">${st.depends_on?.length?`← waits for: ${st.depends_on.join(', ')}`:'(no deps)'}</div>
     ${st.last_output_chunk?`<div class="mc-card-body" style="color:var(--ok)">stdout: ${esc(st.last_output_chunk).substring(0,240)}</div>`:''}
     ${st.last_error_chunk?`<div class="mc-card-body" style="color:var(--err)">stderr: ${esc(st.last_error_chunk).substring(0,240)}</div>`:''}
-    ${(stdout||stderr)?`<details><summary style="font-size:11px;color:var(--text-muted);cursor:pointer">stdout/stderr tail</summary>${stdout?`<pre class="mc-log-viewer" style="max-height:140px">${esc(stdout)}</pre>`:''}${stderr?`<pre class="mc-log-viewer" style="max-height:140px;color:var(--err)">${esc(stderr)}</pre>`:''}</details>`:''}
+    ${(stdout||stderr)?`<details class="mc-log-details"><summary>stdout/stderr tail</summary>${stdout?`<pre class="mc-log-viewer" style="max-height:140px">${esc(stdout)}</pre>`:''}${stderr?`<pre class="mc-log-viewer" style="max-height:140px;color:var(--err)">${esc(stderr)}</pre>`:''}</details>`:''}
     ${st.attempt_history?.length?`<details><summary style="font-size:11px;color:var(--text-muted);cursor:pointer">Attempts (${st.attempt_history.length})</summary><pre class="mc-log-viewer" style="max-height:220px">${esc(JSON.stringify(st.attempt_history,null,2))}</pre></details>`:''}
     ${st.output?`<pre class="mc-log-viewer" style="margin-top:4px">${esc(JSON.stringify(st.output,null,2))}</pre>`:''}
     ${st.error?`<pre class="mc-log-viewer" style="color:var(--err);margin-top:4px">${esc(JSON.stringify(st.error,null,2))}</pre>`:''}
@@ -283,6 +355,7 @@ function showWfDrawer(wf){
       <button class="mc-btn mc-btn-secondary" onclick="wfTimeline('${esc(wf.workflow_id)}')">Timeline API</button>
       <button class="mc-btn mc-btn-secondary" onclick="wfAction('${esc(wf.workflow_id)}','synthesize')">Synthesize</button>
     </div>
+    ${priorityHtml?`<strong>Pending / running steps:</strong><div class="mc-timeline-priorities">${priorityHtml}</div>`:''}
     <strong>Step timeline:</strong>
     <div class="mc-timeline">${stHtml}</div>
     ${synHtml}
@@ -352,16 +425,18 @@ function renderDispatchList(items){
     const stdout=asTail(d.stdout_tail).slice(-8).join('\n');
     const stderr=asTail(d.stderr_tail).slice(-8).join('\n');
     const liveMeta=`PID: ${esc(d.pid||'none')} · Process: ${esc(d.process_status||d.status||'unknown')} · Exit: ${esc(d.exit_code??'pending')} · Elapsed: ${esc(d.elapsed_seconds||0)}s · Timeout: ${esc(d.timeout_seconds||120)}s`;
+    const timeline=dispatchTimeline(d);
     return `<article class="mc-card">
     <div class="mc-card-title">${badge(d.status,d.status)} ${esc(d.profile)}: ${esc(d.title||d.workflow_title)}</div>
     <div class="mc-card-meta">Method: ${esc(d.dispatch_method)} · Session: ${esc(d.session_id||'none')} · ${d.finished_at?fd(d.finished_at):'pending'}</div>
     <div class="mc-card-meta">${liveMeta} · Retry: ${esc(d.retry_count||0)}/${esc(d.max_retries||0)} · Failure: ${esc(d.failure_reason||'none')}</div>
+    <div class="mc-dispatch-timeline">${timeline}</div>
     ${d.last_output_chunk?`<div class="mc-card-body" style="color:var(--ok)">stdout: ${esc(d.last_output_chunk).substring(0,240)}</div>`:''}
     ${d.last_error_chunk?`<div class="mc-card-body" style="color:var(--err)">stderr: ${esc(d.last_error_chunk).substring(0,240)}</div>`:''}
     ${d.output?.response?`<div class="mc-card-body" style="color:var(--ok)">${esc(d.output.response).substring(0,200)}</div>`:''}
     ${d.error?.message?`<div class="mc-card-body" style="color:var(--err)">${esc(d.error.message).substring(0,200)}</div>`:''}
-    ${(stdout||stderr)?`<details open><summary style="font-size:11px;color:var(--text-muted);cursor:pointer">Live stdout/stderr</summary>${stdout?`<pre class="mc-log-viewer" style="max-height:160px">${esc(stdout)}</pre>`:''}${stderr?`<pre class="mc-log-viewer" style="max-height:160px;color:var(--err)">${esc(stderr)}</pre>`:''}</details>`:''}
-    ${d.prompt?`<details><summary style="font-size:11px;color:var(--text-muted);cursor:pointer">Prompt</summary><pre class="mc-log-viewer" style="max-height:200px" id="prompt-${esc(d.dispatch_id)}">${esc(d.prompt)}</pre></details>`:''}
+    ${(stdout||stderr)?`<details class="mc-log-details"><summary>Live stdout/stderr</summary>${stdout?`<pre class="mc-log-viewer" style="max-height:160px">${esc(stdout)}</pre>`:''}${stderr?`<pre class="mc-log-viewer" style="max-height:160px;color:var(--err)">${esc(stderr)}</pre>`:''}</details>`:''}
+    ${d.prompt?`<details class="mc-log-details"><summary>Prompt</summary><pre class="mc-log-viewer" style="max-height:200px" id="prompt-${esc(d.dispatch_id)}">${esc(d.prompt)}</pre></details>`:''}
     <div class="mc-btn-group">
       ${d.status==='queued'?`<button class="mc-btn mc-btn-xs mc-btn-primary" onclick="dispatchStart('${esc(d.dispatch_id)}')">▶ Start</button>`:''}
       ${(d.status==='failed'||d.status==='timed_out'||d.status==='retry_exhausted')?`<button class="mc-btn mc-btn-xs mc-btn-secondary" onclick="dispatchStart('${esc(d.dispatch_id)}')">Retry</button>`:''}
@@ -372,6 +447,15 @@ function renderDispatchList(items){
       ${d.session_id?`<button class="mc-btn mc-btn-xs mc-btn-secondary" onclick="dispatchLogs('${esc(d.dispatch_id)}')">Logs</button>`:''}
       ${d.workflow_id?`<button class="mc-btn mc-btn-xs mc-btn-secondary" onclick="navTo('workflows-section');openWfDrawer('${esc(d.workflow_id)}')">Workflow</button>`:''}
     </div></article>`}).join('');
+}
+function dispatchTimeline(d){
+  const steps=[
+    {label:'queued',status:d.created_at?'completed':'queued'},
+    {label:'started',status:d.started_at?'completed':'queued'},
+    {label:'running',status:['running','retrying','cancelling'].includes(d.status)?'running':(d.started_at?'completed':'queued')},
+    {label:d.status||'pending',status:d.status||'queued'}
+  ];
+  return steps.map(s=>`<span class="mc-dispatch-step ${timelineClass(s.status)}">${esc(s.label)}</span>`).join('');
 }
 
 async function dispatchStart(id){
@@ -394,8 +478,14 @@ async function dispatchLive(id){
   try{const r=await api(`/api/dispatch/${id}/live`);
     const stdout=asTail(r.stdout_tail).join('\n');
     const stderr=asTail(r.stderr_tail).join('\n');
-    const html=`<h4>Live Dispatch</h4><div class="mc-card-meta">PID: ${esc(r.pid||'none')} · Status: ${esc(r.status)} / ${esc(r.process_status||'')} · Exit: ${esc(r.exit_code??'pending')} · Elapsed: ${esc(r.elapsed_seconds||0)}s</div><h5>stdout</h5><pre class="mc-log-viewer">${esc(stdout||r.last_output_chunk||'')}</pre><h5>stderr</h5><pre class="mc-log-viewer" style="color:var(--err)">${esc(stderr||r.last_error_chunk||'')}</pre>`;
-    openModal(html)}
+    const html=`<div class="mc-card">
+      <div class="mc-card-title">${badge(r.status,r.status)} Live Dispatch</div>
+      <div class="mc-card-meta">PID: ${esc(r.pid||'none')} · Process: ${esc(r.process_status||'')} · Exit: ${esc(r.exit_code??'pending')} · Elapsed: ${esc(r.elapsed_seconds||0)}s</div>
+      <div class="mc-dispatch-timeline">${dispatchTimeline(r)}</div>
+    </div>
+    <details class="mc-log-details"><summary>stdout</summary><pre class="mc-log-viewer">${esc(stdout||r.last_output_chunk||'No stdout yet')}</pre></details>
+    <details class="mc-log-details"><summary>stderr</summary><pre class="mc-log-viewer" style="color:var(--err)">${esc(stderr||r.last_error_chunk||'No stderr yet')}</pre></details>`;
+    openDrawer(`Dispatch: ${id}`,html)}
   catch(e){toast(e.message,'err')}}
 
 async function dispatchLogs(id){
@@ -620,8 +710,8 @@ const PALETTE_ACTIONS=[
 ];
 
 function openPalette(){
-  $('paletteBackdrop').classList.add('open');$('paletteInput').value='';$('paletteInput').focus();renderPaletteItems('')}
-function closePalette(){$('paletteBackdrop').classList.remove('open')}
+  $('palette').classList.add('open');$('paletteBackdrop').classList.add('open');$('paletteInput').value='';$('paletteInput').focus();renderPaletteItems('')}
+function closePalette(){$('palette').classList.remove('open');$('paletteBackdrop').classList.remove('open')}
 
 function renderPaletteItems(query){
   const q=query.toLowerCase();const items=PALETTE_ACTIONS.filter(a=>a.label.toLowerCase().includes(q));
@@ -663,6 +753,7 @@ document.body.addEventListener('click',e=>{
 });
 document.querySelectorAll('.mc-nav-item').forEach(btn=>btn.addEventListener('click',()=>navTo(btn.dataset.scroll)));
 $('searchInput').addEventListener('input',e=>{/* future: filter within current section */});
+$('showTestData').addEventListener('change',e=>{S.showTestData=e.target.checked;renderNeedsAttention();renderStatusHero()});
 $('paletteInput').addEventListener('input',e=>renderPaletteItems(e.target.value));
 $('paletteInput').addEventListener('keydown',e=>{if(e.key==='Enter'){const sel=document.querySelector('.mc-palette-item.selected');if(sel)sel.click()}});
 

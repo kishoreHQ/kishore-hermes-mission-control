@@ -4,6 +4,12 @@ Every future commit that changes behavior, setup, API, UI, workflow, config, or 
 
 ## Unreleased
 
+- Phase 5 UI revamp: widened the static UI into fluid grids, tightened card density, improved empty/log states, and preserved the mobile bottom-bar breakpoint.
+- Phase 4 UI revamp: added colored workflow/dispatch timeline markers, prioritized pending/running workflow steps, collapsed dispatch stdout/stderr by default, and moved live dispatch detail into the drawer.
+- Phase 3 UI revamp: added a home cockpit hero verdict, bento metrics, service issue signal, and de-duplicated Needs Attention cards with a Show test data toggle.
+- Phase 2 UI revamp: retuned the static design system with clearer elevation, quieter chrome, tabular numerals, and warning/error badge glyphs.
+- Phase 1 UI revamp: fixed the command palette so it is hidden by default and opens/closes with its backdrop.
+- Phase 1 UI revamp: made sidebar active state rely on `navTo()` instead of static initial markup.
 - Added scheduled-jobs audit runbook and `scripts/audit_scheduled_jobs.sh`.
 - Documented 2026-05-31 cron/systemd/Hermes scheduler audit in `docs/scheduled_jobs_audit_2026-05-31.md`.
 - Fixed Morning Content Intelligence Hermes cron by converting it to no-agent script mode.

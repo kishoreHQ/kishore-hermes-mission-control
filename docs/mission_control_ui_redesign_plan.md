@@ -320,43 +320,23 @@ All components use consistent BEM-style naming:
 
 ## Implementation Plan
 
-### Phase 1: CSS Foundation
-1. Rewrite CSS with new color system, typography, spacing
-2. Create component classes
-3. Ensure existing HTML still renders
+### Phase 0: Branch and Baseline
+Status: complete on branch `feat/ui-revamp`; tagged the pre-revamp baseline as `pre-ui-revamp` and verified the unchanged baseline with `VERIFY_OK`.
 
-### Phase 2: Shell + Navigation
-1. New sidebar with 10 items
-2. Top bar with search + actions
-3. Command palette (Cmd+K)
-4. Drawer system
+### Phase 1: Palette and Navigation Consistency
+Status: complete. The command palette is hidden by default, `openPalette()`/`closePalette()` toggle both the palette and backdrop, and sidebar active state is driven by `navTo()` rather than static initial markup.
 
-### Phase 3: Home Page (Command Center)
-1. Health summary
-2. Metric cards
-3. Running now
-4. Recent failures
-5. Quick actions
-6. Activity feed
+### Phase 2: Design-System Pass
+Status: complete. Existing token names were preserved while values were retuned for clearer base/surface/elevated separation, dimmer sidebar/topbar chrome, tighter type sizing, tabular numerals across the UI, and warning/error badge glyphs on top of the existing dot-and-label pattern.
 
-### Phase 4: Remaining Pages
-1. Runs (with detail drawer)
-2. Workflows (with detail drawer)
-3. Agents (with detail drawer)
-4. Tasks/Kanban
-5. Services
-6. Logs
-7. Nightly
-8. Cron
-9. Docs
+### Phase 3: Home Cockpit
+Status: complete. Home now includes an operational verdict hero derived from status and service health signals, bento-style metric tiles, a service issue metric, and de-duplicated Needs Attention cards. Synthetic test records are hidden by default and can be revealed with the Show test data toggle.
 
-### Phase 5: Interactions
-1. Drawer open/close
-2. Toast system
-3. Skeleton loading
-4. Empty states
-5. Error states
-6. Confirmation modal
+### Phase 4: Execution Timelines
+Status: complete. Workflow detail now orders pending/running work first and uses clearer colored timeline states. Dispatch cards and live detail include compact timeline markers, and stdout/stderr live output is collapsed by default behind details controls.
+
+### Phase 5: Density and Width
+Status: complete. The fixed content width was replaced with a fluid wide-screen cap, card/grid padding was tightened, repeated grids use responsive tracks, empty/log states were polished, and the existing mobile bottom-bar breakpoint remains in place.
 
 ## Responsive Behavior
 

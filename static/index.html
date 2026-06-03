@@ -12,7 +12,7 @@
   <aside class="mc-sidebar">
     <div class="mc-sidebar-brand"><span>H</span><span>Mission Control</span></div>
     <nav class="mc-nav">
-      <button class="mc-nav-item active" data-scroll="home"><span class="nav-icon">⌂</span> Home</button>
+      <button class="mc-nav-item" data-scroll="home"><span class="nav-icon">⌂</span> Home</button>
       <button class="mc-nav-item" data-scroll="runs-section"><span class="nav-icon">⏵</span> Runs</button>
       <button class="mc-nav-item" data-scroll="workflows-section"><span class="nav-icon">🔄</span> Workflows</button>
       <button class="mc-nav-item" data-scroll="dispatch-section"><span class="nav-icon">⚡</span> Dispatch</button>
@@ -60,6 +60,8 @@
 
       <!-- HOME: Command Center -->
       <section id="home">
+        <div id="statusHero" class="mc-status-hero"></div>
+
         <!-- Health Summary -->
         <div class="mc-section">
           <div class="mc-section-head"><h2>System Health</h2><span class="subtitle" id="healthUpdated"></span></div>
@@ -68,7 +70,7 @@
 
         <!-- Metrics -->
         <div class="mc-section">
-          <div id="metricsRow" class="mc-metrics"></div>
+          <div id="metricsRow" class="mc-metrics mc-bento"></div>
         </div>
 
         <!-- Running Now -->
@@ -79,7 +81,10 @@
 
         <!-- Needs Attention -->
         <div class="mc-section">
-          <div class="mc-section-head"><h2>Needs Attention</h2></div>
+          <div class="mc-section-head">
+            <h2>Needs Attention</h2>
+            <label class="mc-toggle"><input id="showTestData" type="checkbox"> Show test data</label>
+          </div>
           <div id="needsAttention" class="cards-grid"></div>
         </div>
 
