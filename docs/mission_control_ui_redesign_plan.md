@@ -327,7 +327,7 @@ Status: complete on branch `feat/ui-revamp`; tagged the pre-revamp baseline as `
 Status: complete. The command palette is hidden by default, `openPalette()`/`closePalette()` toggle both the palette and backdrop, and sidebar active state is driven by `navTo()` rather than static initial markup.
 
 ### Phase 2: Design-System Pass
-Pending. Retune the existing token values without renaming them, establish a clearer elevation ladder, tighten the type ramp, add tabular numerals, dim chrome, and add unmistakable failed/degraded glyphs while preserving the current status class map.
+Status: complete. Existing token names were preserved while values were retuned for clearer base/surface/elevated separation, dimmer sidebar/topbar chrome, tighter type sizing, tabular numerals across the UI, and warning/error badge glyphs on top of the existing dot-and-label pattern.
 
 ### Phase 3: Home Cockpit
 Pending. Add the status hero verdict, bento health/metric grid, and de-duplicated Needs Attention view with synthetic test data hidden behind a small reveal toggle.

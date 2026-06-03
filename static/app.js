@@ -53,7 +53,8 @@ function badge(status,label){
     failed:'err',error:'err',offline:'err',degraded:'warn',warning:'warn',needs_review:'warn',
     queued:'idle',blocked:'idle',draft:'idle',paused:'idle',archived:'idle',unknown:'idle'};
   const cls=map[status]||'idle';
-  return `<span class="mc-badge mc-badge-${cls}">${esc(label||status)}</span>`;
+  const glyph=cls==='err'?'!':(cls==='warn'?'△':'');
+  return `<span class="mc-badge mc-badge-${cls}">${glyph?`<span class="mc-badge-glyph" aria-hidden="true">${glyph}</span>`:''}${esc(label||status)}</span>`;
 }
 
 // ── Master Render ──────────────────────────────────────────────
