@@ -336,7 +336,7 @@ Status: complete. Home now includes an operational verdict hero derived from sta
 Status: complete. Workflow detail now orders pending/running work first and uses clearer colored timeline states. Dispatch cards and live detail include compact timeline markers, and stdout/stderr live output is collapsed by default behind details controls.
 
 ### Phase 5: Density and Width
-Pending. Replace the fixed content max width with fluid responsive grids, tighten card padding, and polish empty/loading states while preserving the existing mobile bottom-bar breakpoint.
+Status: complete. The fixed content width was replaced with a fluid wide-screen cap, card/grid padding was tightened, repeated grids use responsive tracks, empty/log states were polished, and the existing mobile bottom-bar breakpoint remains in place.
 
 ## Responsive Behavior
 

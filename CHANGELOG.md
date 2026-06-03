@@ -4,6 +4,7 @@ Every future commit that changes behavior, setup, API, UI, workflow, config, or 
 
 ## Unreleased
 
+- Phase 5 UI revamp: widened the static UI into fluid grids, tightened card density, improved empty/log states, and preserved the mobile bottom-bar breakpoint.
 - Phase 4 UI revamp: added colored workflow/dispatch timeline markers, prioritized pending/running workflow steps, collapsed dispatch stdout/stderr by default, and moved live dispatch detail into the drawer.
 - Phase 3 UI revamp: added a home cockpit hero verdict, bento metrics, service issue signal, and de-duplicated Needs Attention cards with a Show test data toggle.
 - Phase 2 UI revamp: retuned the static design system with clearer elevation, quieter chrome, tabular numerals, and warning/error badge glyphs.
