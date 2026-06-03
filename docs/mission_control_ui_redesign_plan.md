@@ -333,7 +333,7 @@ Status: complete. Existing token names were preserved while values were retuned 
 Status: complete. Home now includes an operational verdict hero derived from status and service health signals, bento-style metric tiles, a service issue metric, and de-duplicated Needs Attention cards. Synthetic test records are hidden by default and can be revealed with the Show test data toggle.
 
 ### Phase 4: Execution Timelines
-Pending. Upgrade workflow and dispatch details to colored-dot timelines, surface pending/running steps first, and collapse dispatch stdout/stderr live boxes by default.
+Status: complete. Workflow detail now orders pending/running work first and uses clearer colored timeline states. Dispatch cards and live detail include compact timeline markers, and stdout/stderr live output is collapsed by default behind details controls.
 
 ### Phase 5: Density and Width
 Pending. Replace the fixed content max width with fluid responsive grids, tighten card padding, and polish empty/loading states while preserving the existing mobile bottom-bar breakpoint.

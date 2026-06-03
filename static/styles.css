@@ -112,8 +112,27 @@ pre{font-family:var(--mono);font-size:12px;line-height:1.6;overflow:auto;font-va
 .mc-timeline-step::before{content:'';position:absolute;left:-17px;top:10px;width:9px;height:9px;border-radius:50%;background:var(--border)}
 .mc-timeline-step.ok::before{background:var(--ok)}
 .mc-timeline-step.err::before{background:var(--err)}
+.mc-timeline-step.warn::before{background:var(--warn)}
 .mc-timeline-step.info::before{background:var(--info)}
 .mc-timeline-step.running::before{background:var(--info);animation:pulse 2s infinite}
+.mc-timeline-step.queued::before{background:var(--idle)}
+.mc-timeline-step.queued{border-left:1px dashed var(--border)}
+.mc-timeline-priorities{display:flex;flex-direction:column;gap:6px}
+.mc-timeline-priority{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-surface);font-size:12px}
+.mc-timeline-priority span:last-child{margin-left:auto;color:var(--text-muted);font-size:11px}
+.mc-dispatch-timeline{display:flex;align-items:center;gap:0;overflow-x:auto;padding:3px 0}
+.mc-dispatch-step{display:inline-flex;align-items:center;gap:6px;color:var(--text-secondary);font-size:11px;white-space:nowrap}
+.mc-dispatch-step::before{content:'';width:9px;height:9px;border-radius:50%;background:var(--idle);border:1px solid rgba(255,255,255,.12)}
+.mc-dispatch-step:not(:last-child)::after{content:'';width:28px;border-top:1px solid var(--border);margin:0 8px}
+.mc-dispatch-step.queued:not(:last-child)::after{border-top-style:dashed}
+.mc-dispatch-step.ok::before{background:var(--ok)}
+.mc-dispatch-step.err::before{background:var(--err)}
+.mc-dispatch-step.warn::before{background:var(--warn)}
+.mc-dispatch-step.running::before{background:var(--info);animation:pulse 2s infinite}
+.mc-log-details summary{font-size:11px;color:var(--text-secondary);cursor:pointer;list-style:none}
+.mc-log-details summary::-webkit-details-marker{display:none}
+.mc-log-details summary::before{content:'▸';display:inline-block;margin-right:6px;color:var(--text-muted)}
+.mc-log-details[open] summary::before{content:'▾'}
 
 /* Drawer */
 .mc-drawer-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;opacity:0;pointer-events:none;transition:opacity .2s}

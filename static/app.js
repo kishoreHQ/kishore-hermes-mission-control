@@ -51,7 +51,8 @@ function toast(msg,type='ok'){
 function badge(status,label){
   const map={succeeded:'ok',completed:'ok',online:'ok',active:'ok',running:'info',in_progress:'info',
     failed:'err',error:'err',offline:'err',degraded:'warn',warning:'warn',needs_review:'warn',
-    queued:'idle',blocked:'idle',draft:'idle',paused:'idle',archived:'idle',unknown:'idle'};
+    queued:'idle',blocked:'idle',draft:'idle',paused:'idle',archived:'idle',unknown:'idle',
+    ok:'ok',warn:'warn',err:'err',info:'info',idle:'idle'};
   const cls=map[status]||'idle';
   const glyph=cls==='err'?'!':(cls==='warn'?'△':'');
   return `<span class="mc-badge mc-badge-${cls}">${glyph?`<span class="mc-badge-glyph" aria-hidden="true">${glyph}</span>`:''}${esc(label||status)}</span>`;
@@ -91,6 +92,19 @@ function statusBucket(status){
   if(['offline','failed','error','timed_out','retry_exhausted','cancelled'].includes(status))return'err';
   if(['running','in_progress','retrying'].includes(status))return'info';
   return'idle';
+}
+function timelineClass(status){
+  const bucket=statusBucket(status);
+  if(['running','retrying','in_progress'].includes(status))return'running';
+  if(['queued','draft','pending','blocked','paused'].includes(status))return'queued';
+  return bucket==='ok'?'ok':bucket==='err'?'err':bucket==='warn'?'warn':'idle';
+}
+function statusPriority(status){
+  if(['running','retrying','in_progress'].includes(status))return 0;
+  if(['queued','draft','pending','blocked','paused'].includes(status))return 1;
+  if(statusBucket(status)==='err')return 2;
+  if(statusBucket(status)==='warn')return 3;
+  return 4;
 }
 function isTestNoise(item){
   const name=String(item?.title||item?.name||item?.workflow_title||item?.id||'').toUpperCase();
@@ -295,13 +309,17 @@ function showWfDrawer(wf){
   const failedStatuses=new Set(['failed','timed_out','retry_exhausted','cancelled']);
   const fail=sts.filter(s=>failedStatuses.has(s.status)).length;
   const syn=wf.final_synthesis;
-  const stHtml=sts.map(st=>{
+  const ordered=sts.slice().sort((a,b)=>statusPriority(a.status)-statusPriority(b.status)||(Number(a.order||0)-Number(b.order||0)));
+  const priorityHtml=ordered.filter(st=>statusPriority(st.status)<2).map(st=>`<div class="mc-timeline-priority">
+    ${badge(st.status,st.status)} <strong>${esc(st.profile)}</strong> · ${esc(st.title)} <span>${esc(st.process_status||'pending')}</span>
+  </div>`).join('');
+  const stHtml=ordered.map(st=>{
     const stdout=asTail(st.stdout_tail).slice(-6).join('\n');
     const stderr=asTail(st.stderr_tail).slice(-6).join('\n');
     const retryAttempt=st.retry_attempt??st.retries??0;
     const maxRetries=st.max_retries??st.retry_policy?.retry_count??0;
     const did=st.dispatch_id||'';
-    const errClass=failedStatuses.has(st.status)?'err':(st.status==='completed'?'ok':(st.status==='running'||st.status==='retrying'?'running':''));
+    const errClass=timelineClass(st.status);
     return `<div class="mc-timeline-step ${errClass}">
     <strong>${esc(st.profile)}</strong>: ${esc(st.title)}
     <div class="mc-card-meta">${badge(st.status,st.status)} · process: ${esc(st.process_status||'n/a')} · order: ${st.order} · retry: ${esc(retryAttempt)}/${esc(maxRetries)} · timeout: ${esc(st.timeout_seconds||120)}s · failure: ${esc(st.failure_reason||'none')}</div>
@@ -309,7 +327,7 @@ function showWfDrawer(wf){
     <div class="mc-card-meta">${st.depends_on?.length?`← waits for: ${st.depends_on.join(', ')}`:'(no deps)'}</div>
     ${st.last_output_chunk?`<div class="mc-card-body" style="color:var(--ok)">stdout: ${esc(st.last_output_chunk).substring(0,240)}</div>`:''}
     ${st.last_error_chunk?`<div class="mc-card-body" style="color:var(--err)">stderr: ${esc(st.last_error_chunk).substring(0,240)}</div>`:''}
-    ${(stdout||stderr)?`<details><summary style="font-size:11px;color:var(--text-muted);cursor:pointer">stdout/stderr tail</summary>${stdout?`<pre class="mc-log-viewer" style="max-height:140px">${esc(stdout)}</pre>`:''}${stderr?`<pre class="mc-log-viewer" style="max-height:140px;color:var(--err)">${esc(stderr)}</pre>`:''}</details>`:''}
+    ${(stdout||stderr)?`<details class="mc-log-details"><summary>stdout/stderr tail</summary>${stdout?`<pre class="mc-log-viewer" style="max-height:140px">${esc(stdout)}</pre>`:''}${stderr?`<pre class="mc-log-viewer" style="max-height:140px;color:var(--err)">${esc(stderr)}</pre>`:''}</details>`:''}
     ${st.attempt_history?.length?`<details><summary style="font-size:11px;color:var(--text-muted);cursor:pointer">Attempts (${st.attempt_history.length})</summary><pre class="mc-log-viewer" style="max-height:220px">${esc(JSON.stringify(st.attempt_history,null,2))}</pre></details>`:''}
     ${st.output?`<pre class="mc-log-viewer" style="margin-top:4px">${esc(JSON.stringify(st.output,null,2))}</pre>`:''}
     ${st.error?`<pre class="mc-log-viewer" style="color:var(--err);margin-top:4px">${esc(JSON.stringify(st.error,null,2))}</pre>`:''}
@@ -337,6 +355,7 @@ function showWfDrawer(wf){
       <button class="mc-btn mc-btn-secondary" onclick="wfTimeline('${esc(wf.workflow_id)}')">Timeline API</button>
       <button class="mc-btn mc-btn-secondary" onclick="wfAction('${esc(wf.workflow_id)}','synthesize')">Synthesize</button>
     </div>
+    ${priorityHtml?`<strong>Pending / running steps:</strong><div class="mc-timeline-priorities">${priorityHtml}</div>`:''}
     <strong>Step timeline:</strong>
     <div class="mc-timeline">${stHtml}</div>
     ${synHtml}
@@ -406,16 +425,18 @@ function renderDispatchList(items){
     const stdout=asTail(d.stdout_tail).slice(-8).join('\n');
     const stderr=asTail(d.stderr_tail).slice(-8).join('\n');
     const liveMeta=`PID: ${esc(d.pid||'none')} · Process: ${esc(d.process_status||d.status||'unknown')} · Exit: ${esc(d.exit_code??'pending')} · Elapsed: ${esc(d.elapsed_seconds||0)}s · Timeout: ${esc(d.timeout_seconds||120)}s`;
+    const timeline=dispatchTimeline(d);
     return `<article class="mc-card">
     <div class="mc-card-title">${badge(d.status,d.status)} ${esc(d.profile)}: ${esc(d.title||d.workflow_title)}</div>
     <div class="mc-card-meta">Method: ${esc(d.dispatch_method)} · Session: ${esc(d.session_id||'none')} · ${d.finished_at?fd(d.finished_at):'pending'}</div>
     <div class="mc-card-meta">${liveMeta} · Retry: ${esc(d.retry_count||0)}/${esc(d.max_retries||0)} · Failure: ${esc(d.failure_reason||'none')}</div>
+    <div class="mc-dispatch-timeline">${timeline}</div>
     ${d.last_output_chunk?`<div class="mc-card-body" style="color:var(--ok)">stdout: ${esc(d.last_output_chunk).substring(0,240)}</div>`:''}
     ${d.last_error_chunk?`<div class="mc-card-body" style="color:var(--err)">stderr: ${esc(d.last_error_chunk).substring(0,240)}</div>`:''}
     ${d.output?.response?`<div class="mc-card-body" style="color:var(--ok)">${esc(d.output.response).substring(0,200)}</div>`:''}
     ${d.error?.message?`<div class="mc-card-body" style="color:var(--err)">${esc(d.error.message).substring(0,200)}</div>`:''}
-    ${(stdout||stderr)?`<details open><summary style="font-size:11px;color:var(--text-muted);cursor:pointer">Live stdout/stderr</summary>${stdout?`<pre class="mc-log-viewer" style="max-height:160px">${esc(stdout)}</pre>`:''}${stderr?`<pre class="mc-log-viewer" style="max-height:160px;color:var(--err)">${esc(stderr)}</pre>`:''}</details>`:''}
-    ${d.prompt?`<details><summary style="font-size:11px;color:var(--text-muted);cursor:pointer">Prompt</summary><pre class="mc-log-viewer" style="max-height:200px" id="prompt-${esc(d.dispatch_id)}">${esc(d.prompt)}</pre></details>`:''}
+    ${(stdout||stderr)?`<details class="mc-log-details"><summary>Live stdout/stderr</summary>${stdout?`<pre class="mc-log-viewer" style="max-height:160px">${esc(stdout)}</pre>`:''}${stderr?`<pre class="mc-log-viewer" style="max-height:160px;color:var(--err)">${esc(stderr)}</pre>`:''}</details>`:''}
+    ${d.prompt?`<details class="mc-log-details"><summary>Prompt</summary><pre class="mc-log-viewer" style="max-height:200px" id="prompt-${esc(d.dispatch_id)}">${esc(d.prompt)}</pre></details>`:''}
     <div class="mc-btn-group">
       ${d.status==='queued'?`<button class="mc-btn mc-btn-xs mc-btn-primary" onclick="dispatchStart('${esc(d.dispatch_id)}')">▶ Start</button>`:''}
       ${(d.status==='failed'||d.status==='timed_out'||d.status==='retry_exhausted')?`<button class="mc-btn mc-btn-xs mc-btn-secondary" onclick="dispatchStart('${esc(d.dispatch_id)}')">Retry</button>`:''}
@@ -426,6 +447,15 @@ function renderDispatchList(items){
       ${d.session_id?`<button class="mc-btn mc-btn-xs mc-btn-secondary" onclick="dispatchLogs('${esc(d.dispatch_id)}')">Logs</button>`:''}
       ${d.workflow_id?`<button class="mc-btn mc-btn-xs mc-btn-secondary" onclick="navTo('workflows-section');openWfDrawer('${esc(d.workflow_id)}')">Workflow</button>`:''}
     </div></article>`}).join('');
+}
+function dispatchTimeline(d){
+  const steps=[
+    {label:'queued',status:d.created_at?'completed':'queued'},
+    {label:'started',status:d.started_at?'completed':'queued'},
+    {label:'running',status:['running','retrying','cancelling'].includes(d.status)?'running':(d.started_at?'completed':'queued')},
+    {label:d.status||'pending',status:d.status||'queued'}
+  ];
+  return steps.map(s=>`<span class="mc-dispatch-step ${timelineClass(s.status)}">${esc(s.label)}</span>`).join('');
 }
 
 async function dispatchStart(id){
@@ -448,8 +478,14 @@ async function dispatchLive(id){
   try{const r=await api(`/api/dispatch/${id}/live`);
     const stdout=asTail(r.stdout_tail).join('\n');
     const stderr=asTail(r.stderr_tail).join('\n');
-    const html=`<h4>Live Dispatch</h4><div class="mc-card-meta">PID: ${esc(r.pid||'none')} · Status: ${esc(r.status)} / ${esc(r.process_status||'')} · Exit: ${esc(r.exit_code??'pending')} · Elapsed: ${esc(r.elapsed_seconds||0)}s</div><h5>stdout</h5><pre class="mc-log-viewer">${esc(stdout||r.last_output_chunk||'')}</pre><h5>stderr</h5><pre class="mc-log-viewer" style="color:var(--err)">${esc(stderr||r.last_error_chunk||'')}</pre>`;
-    openModal(html)}
+    const html=`<div class="mc-card">
+      <div class="mc-card-title">${badge(r.status,r.status)} Live Dispatch</div>
+      <div class="mc-card-meta">PID: ${esc(r.pid||'none')} · Process: ${esc(r.process_status||'')} · Exit: ${esc(r.exit_code??'pending')} · Elapsed: ${esc(r.elapsed_seconds||0)}s</div>
+      <div class="mc-dispatch-timeline">${dispatchTimeline(r)}</div>
+    </div>
+    <details class="mc-log-details"><summary>stdout</summary><pre class="mc-log-viewer">${esc(stdout||r.last_output_chunk||'No stdout yet')}</pre></details>
+    <details class="mc-log-details"><summary>stderr</summary><pre class="mc-log-viewer" style="color:var(--err)">${esc(stderr||r.last_error_chunk||'No stderr yet')}</pre></details>`;
+    openDrawer(`Dispatch: ${id}`,html)}
   catch(e){toast(e.message,'err')}}
 
 async function dispatchLogs(id){
