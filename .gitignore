@@ -27,7 +27,8 @@ data/workflows_multi.json
 data/tasks.json
 data/nightly_builds.json
 data/uploads/
-logs/
+logs/*
+!logs/.gitkeep
 *.log
 
 # OS/editor
