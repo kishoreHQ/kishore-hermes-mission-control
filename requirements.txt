@@ -1,0 +1,6 @@
+# Mission Control -- runtime dependencies
+# The server itself is stdlib-only (no external packages required).
+# This file is used by `make setup` only to install pytest for the test suite.
+
+# Dev / test
+pytest>=7.0
