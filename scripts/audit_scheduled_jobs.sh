@@ -19,10 +19,10 @@ systemctl list-timers --all --no-pager || true
 echo "== Failed units =="
 systemctl --failed --no-pager || true
 
-echo "== Mission Control health =="
-curl -fsS http://127.0.0.1:8090/healthz >/dev/null
-curl -fsS http://127.0.0.1:8090/api/status >/dev/null
-curl -fsS http://127.0.0.1:8090/api/services/health >/dev/null
+echo "== Hermes OS V2 health =="
+curl -fsS http://127.0.0.1:8000/healthz >/dev/null
+curl -fsS "http://127.0.0.1:8000/api/v1/status?heavy=false" >/dev/null
+curl -fsS http://127.0.0.1:8000/api/v1/services/health >/dev/null
 
 echo "== Mission Control scheduled/runtime data =="
 cd "$ROOT"

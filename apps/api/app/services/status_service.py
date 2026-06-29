@@ -4,14 +4,10 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from app.services import hermes_adapter, legacy_adapter, probes, v1_bridge
+from app.services import hermes_adapter, legacy_adapter, probes
 
 
 def build_status(include_heavy: bool = True) -> dict:
-    v1 = v1_bridge.fetch_v1_status() if include_heavy else None
-    if v1:
-        return v1
-
     services_static = legacy_adapter.list_services()
     services = [probes.probe_service(s) for s in services_static] if include_heavy else services_static
     cron_jobs = hermes_adapter.list_cron_summaries()

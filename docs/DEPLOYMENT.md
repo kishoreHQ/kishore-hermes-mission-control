@@ -13,7 +13,7 @@
 | **V2 native VPS (recommended)** | This doc §1 | `vps-native.sh`, systemd, Tailscale |
 | **V2 local Mac** | [README-V2.md](../README-V2.md) | `dev-mac.sh` |
 | **V2 Docker (optional)** | This doc §8 | `docker-local.sh` |
-| **V1 VPS setup (legacy UI, :8090)** | [SETUP.md](../SETUP.md) | `server.py`, systemd |
+| **V1 VPS setup (legacy, retired)** | [SETUP.md](../SETUP.md) | `server.py` — use V2 instead |
 | **Hermes agent clone/run** | [AGENTS.md](../AGENTS.md) | Hermes self-setup |
 | **V2 strategy** | [docs/v2/README.md](./v2/README.md) | Full dossier |
 
@@ -23,7 +23,7 @@
 
 | Version | Port | Stack | Status |
 |---------|------|-------|--------|
-| **V1 legacy** | 8090 | `server.py` + `static/` | Still on VPS today |
+| **V1 legacy** | 8090 | `server.py` + `static/` | **Retired** — V2 is production |
 | **V2 Hermes OS** | 3001 (web) + 8000 (api) | Native systemd or Docker | New — run alongside V1 |
 
 Run **both in parallel** during migration. Retire V1 when V2 covers your daily workflows.
@@ -87,7 +87,6 @@ journalctl -u hermes-os-web -n 50 --no-pager
 |-----------|-----|---------|
 | Hermes cron (19 jobs) | Existing systemd/cron | No |
 | Hermes CLI / agents | Native `$HERMES_HOME` | No |
-| V1 dashboard (:8090) | `mission-control.service` | No |
 | V2 API (:8000) | `hermes-os-api.service` | No |
 | V2 Web (:3001) | `hermes-os-web.service` | No |
 
@@ -160,9 +159,25 @@ Add to crontab `@reboot` if needed.
 
 ---
 
-## 3. Migrate from V1 (port 8090)
+## 3. V1 retirement (completed)
 
-### What carries over
+V1 (`mission-control.service` on port 8090) has been retired. V2 is the sole production dashboard.
+
+To retire V1 on a host that still runs it:
+
+```bash
+./scripts/retire-v1.sh
+```
+
+Or manually:
+
+```bash
+sudo systemctl stop mission-control.service
+sudo systemctl disable mission-control.service
+tailscale serve --https=8090 off   # if V1 was exposed via Tailscale Serve
+```
+
+### What carried over from V1
 
 | V1 asset | V2 usage |
 |----------|----------|
@@ -173,25 +188,9 @@ Add to crontab `@reboot` if needed.
 | `workflows.json` | Agent fleet catalog |
 | Hermes cron at `$HERMES_HOME/cron/` | Cron API |
 
-### Steps
+### Old V1 setup (reference only)
 
-```bash
-# 1. Keep V1 running
-systemctl status mission-control.service
-
-# 2. Start V2 native alongside
-HERMES_DATA_DIR=/root/mission-control/data ./scripts/vps-native.sh setup
-./scripts/vps-native.sh install-services
-./scripts/vps-native.sh start
-
-# 3. Compare
-curl http://127.0.0.1:8090/api/status | head
-curl http://127.0.0.1:8000/api/v1/today
-
-# 4. When ready, retire V1
-sudo systemctl stop mission-control.service
-sudo systemctl disable mission-control.service
-```
+See [SETUP.md](../SETUP.md) for historical `server.py` / `make run` docs. Do not install `mission-control.service` on new hosts.
 
 ### Old `mission-control-dashboard` spec repo
 
@@ -222,7 +221,6 @@ Do **not** containerize Hermes cron or agents. See [AGENTS.md](../AGENTS.md).
 |-------------------------|-----|
 | V2 Today (Serve) | `https://<vps-hostname>/today` |
 | V2 Today (direct IP) | `http://100.x.x.x:3001/today` |
-| V1 legacy (until retired) | `http://100.x.x.x:8090` |
 
 ---
 
@@ -285,5 +283,5 @@ After `git pull && ./scripts/vps-native.sh setup && ./scripts/vps-native.sh rest
 | 3 Dispatch | `POST /api/v1/dispatch/enqueue` then watch `/agents/dispatch` |
 | 4 Nightly | `POST /api/v1/nightly/trigger`; `/insights` shows cost rows |
 | 5 Spaces | `/create`, `/wealth`, `/knowledge`, `/infrastructure` load data |
-| 6 Cutover | Compare V1 `:8090` vs V2; stop `mission-control.service` when ready |
+| 6 Cutover | V1 retired; verify `./scripts/retire-v1.sh` if upgrading old hosts |
 

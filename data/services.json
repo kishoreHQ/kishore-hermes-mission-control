@@ -14,18 +14,18 @@
     "notes": "Some deeper APIs require dashboard/session auth; use Mission Control adapters for actions."
   },
   {
-    "id": "mission-control",
-    "name": "Mission Control",
-    "port": 8090,
-    "url": "http://127.0.0.1:8090",
-    "public_url": "https://gcp-hermes.tail57c68b.ts.net:8090/",
+    "id": "hermes-os",
+    "name": "Hermes OS V2",
+    "port": 3001,
+    "url": "http://127.0.0.1:3001",
+    "public_url": "https://gcp-hermes.tail57c68b.ts.net/",
     "type": "mission-control",
-    "systemd_service": "mission-control.service",
-    "health_endpoint": "/healthz",
-    "embed_path": "/",
+    "systemd_service": "hermes-os-web.service",
+    "health_endpoint": "/today",
+    "embed_path": "/today",
     "embed_supported": false,
     "actions": ["refresh_all", "view_logs", "create_nightly_build", "export_status"],
-    "notes": "Primary control plane."
+    "notes": "Primary control plane (Next.js + FastAPI). API on :8000 via hermes-os-api.service."
   },
   {
     "id": "hermes-webui",

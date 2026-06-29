@@ -36,9 +36,11 @@ HERMES_DATA_DIR=/root/mission-control/data HERMES_HOME=/root/.hermes ./scripts/v
 - **Product spec:** `docs/PRD_V2.md`
 - **Deploy:** `docs/DEPLOYMENT.md`
 - **API:** `http://127.0.0.1:8000/api/v1/docs`
-- **V1 legacy:** `make run` on port 8090 until cutover
+- **Retire V1:** `./scripts/retire-v1.sh` (stops `mission-control.service` on :8090)
 
-## Quickstart V1 (legacy)
+## Quickstart V1 (deprecated)
+
+V1 (`make run` on port 8090) is **retired** in production. The code remains in `server.py` for reference. Use V2 above.
 
 ```bash
 # 1. Clone

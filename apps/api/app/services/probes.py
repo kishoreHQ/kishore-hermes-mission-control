@@ -9,7 +9,6 @@ from datetime import datetime, timezone
 from urllib.request import Request, urlopen
 
 SERVICE_ALLOWLIST = {
-    "mission-control.service",
     "hermes-os-api.service",
     "hermes-os-web.service",
     "hermes-dashboard.service",

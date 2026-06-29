@@ -29,7 +29,7 @@ DISPATCH_DATA = DATA_DIR / "dispatch_queue.jsonl"
 WF_EVENTS_DATA = DATA_DIR / "workflow_events.jsonl"
 HERMES_HOME = Path(os.environ.get("HERMES_HOME", "/root/.hermes"))
 PROFILES_DIR = HERMES_HOME / "profiles"
-DASHBOARD_URL = "https://gcp-hermes.tail57c68b.ts.net:8090/"
+DASHBOARD_URL = os.environ.get("HERMES_DASHBOARD_URL", "https://gcp-hermes.tail57c68b.ts.net/")
 
 DISPATCH_TIMEOUT = 120
 DISPATCH_MAX_TURNS = 10

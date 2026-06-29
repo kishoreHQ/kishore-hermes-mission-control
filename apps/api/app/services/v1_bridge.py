@@ -1,4 +1,4 @@
-"""Bridge to V1 Mission Control when running on :8090."""
+"""Deprecated V1 bridge — V1 mission-control.service on :8090 is retired."""
 
 from __future__ import annotations
 

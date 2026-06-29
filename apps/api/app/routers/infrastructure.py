@@ -4,7 +4,6 @@ from fastapi import APIRouter
 router = APIRouter(tags=["infrastructure"])
 
 LOG_ALLOWLIST = {
-    "mission-control.service",
     "hermes-os-api.service",
     "hermes-os-web.service",
     "hermes-webui.service",
