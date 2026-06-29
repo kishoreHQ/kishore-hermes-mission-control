@@ -1,0 +1,7 @@
+[Unit]
+Description=Trigger Hermes OS nightly DAG
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/curl -sf -X POST http://127.0.0.1:8000/api/v1/nightly/trigger

@@ -4,14 +4,20 @@ from app.config import settings
 from app.db.session import engine
 from app.models.base import Base
 from app.routers import (
+    actions,
     agents,
     ai,
+    content,
     dispatch,
     health,
     infrastructure,
+    insights,
     nightly,
     plugins,
+    status,
     stream,
+    system,
+    tasks,
     today,
 )
 from fastapi import FastAPI
@@ -34,14 +40,20 @@ app.add_middleware(
 )
 
 app.include_router(health.router)
+app.include_router(status.router, prefix="/api/v1")
 app.include_router(today.router, prefix="/api/v1")
 app.include_router(dispatch.router, prefix="/api/v1")
 app.include_router(agents.router, prefix="/api/v1")
+app.include_router(tasks.router, prefix="/api/v1")
 app.include_router(infrastructure.router, prefix="/api/v1")
 app.include_router(nightly.router, prefix="/api/v1")
 app.include_router(ai.router, prefix="/api/v1")
 app.include_router(stream.router, prefix="/api/v1")
 app.include_router(plugins.router, prefix="/api/v1")
+app.include_router(actions.router, prefix="/api/v1")
+app.include_router(insights.router, prefix="/api/v1")
+app.include_router(content.router, prefix="/api/v1")
+app.include_router(system.router, prefix="/api/v1")
 
 
 @app.on_event("startup")

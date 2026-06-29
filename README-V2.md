@@ -4,6 +4,8 @@ See [docs/v2/README.md](docs/v2/README.md) for the full strategy dossier.
 
 **VPS + Tailscale deployment:** [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) — **native (no Docker) recommended**
 
+**Product spec (PRD):** [docs/PRD_V2.md](docs/PRD_V2.md)
+
 ## Quick start — pick one
 
 | Mode | Best for | Postgres |

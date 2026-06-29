@@ -1,5 +1,5 @@
-import { PlaceholderSpace } from "@/components/spaces/placeholder-space";
+import { WealthPage } from "@/components/wealth/wealth-page";
 
 export default function WealthRoute() {
-  return <PlaceholderSpace space="wealth" />;
+  return <WealthPage />;
 }

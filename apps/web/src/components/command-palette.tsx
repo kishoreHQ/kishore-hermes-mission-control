@@ -57,6 +57,27 @@ export function CommandPalette() {
             </Command.Group>
             <Command.Group heading="Actions" className="text-xs text-muted-foreground px-2 py-1 mt-2">
               <Command.Item
+                value="missions"
+                onSelect={() => { router.push("/missions"); setOpen(false); }}
+                className="flex cursor-pointer rounded-md px-2 py-2 text-sm aria-selected:bg-primary/10"
+              >
+                ◈ Open Missions board
+              </Command.Item>
+              <Command.Item
+                value="dispatch"
+                onSelect={() => { router.push("/agents/dispatch"); setOpen(false); }}
+                className="flex cursor-pointer rounded-md px-2 py-2 text-sm aria-selected:bg-primary/10"
+              >
+                ⚡ Dispatch queue
+              </Command.Item>
+              <Command.Item
+                value="nightly"
+                onSelect={() => { router.push("/agents/nightly"); setOpen(false); }}
+                className="flex cursor-pointer rounded-md px-2 py-2 text-sm aria-selected:bg-primary/10"
+              >
+                🌙 Nightly builds
+              </Command.Item>
+              <Command.Item
                 value="refresh"
                 onSelect={() => { window.location.reload(); setOpen(false); }}
                 className="flex cursor-pointer rounded-md px-2 py-2 text-sm aria-selected:bg-primary/10"

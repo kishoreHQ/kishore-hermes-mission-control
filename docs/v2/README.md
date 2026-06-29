@@ -25,4 +25,6 @@ Mission Control V2 → **Hermes OS**
 
 **Operations:** [DEPLOYMENT.md](../DEPLOYMENT.md) — native VPS + Tailscale (Docker optional)
 
+**Product spec:** [PRD_V2.md](../PRD_V2.md) — Hermes-generated PRD (implementation uses Next.js + FastAPI)
+
 **Status:** Approved June 2026. Implementation scaffold in `apps/` and `packages/`.

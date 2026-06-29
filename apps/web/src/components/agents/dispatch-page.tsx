@@ -5,12 +5,17 @@ import { dispatchApi } from "@hermes/sdk";
 import { Badge, Card, Skeleton } from "@hermes/ui";
 
 export function DispatchPage() {
-  const all = useQuery({ queryKey: ["dispatch"], queryFn: dispatchApi.list });
-  const active = useQuery({ queryKey: ["dispatch", "active"], queryFn: dispatchApi.active });
+  const all = useQuery({ queryKey: ["dispatch"], queryFn: dispatchApi.list, refetchInterval: 5000 });
+  const active = useQuery({
+    queryKey: ["dispatch", "active"],
+    queryFn: dispatchApi.active,
+    refetchInterval: 3000,
+  });
 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">Dispatch Queue</h1>
+      <p className="text-xs text-muted-foreground">Live updates via SSE + 3s polling</p>
       <section>
         <h2 className="text-sm font-medium text-muted-foreground mb-2">Active</h2>
         {active.isLoading ? <Skeleton className="h-16" /> : (
@@ -27,6 +32,9 @@ export function DispatchPage() {
                 ) : null}
               </Card>
             ))}
+            {(active.data?.items ?? []).length === 0 && (
+              <p className="text-sm text-muted-foreground">No active dispatches.</p>
+            )}
           </div>
         )}
       </section>

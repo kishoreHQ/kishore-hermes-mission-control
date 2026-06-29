@@ -1,5 +1,5 @@
-import { PlaceholderSpace } from "@/components/spaces/placeholder-space";
+import { KnowledgePage } from "@/components/knowledge/knowledge-page";
 
 export default function KnowledgeRoute() {
-  return <PlaceholderSpace space="knowledge" />;
+  return <KnowledgePage />;
 }

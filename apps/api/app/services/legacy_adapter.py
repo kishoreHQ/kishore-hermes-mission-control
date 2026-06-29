@@ -31,6 +31,12 @@ def read_json(filename: str, default=None):
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def write_json(filename: str, payload) -> None:
+    path = data_dir() / filename
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, indent=2, default=str) + "\n", encoding="utf-8")
+
+
 def list_dispatches(limit: int = 100) -> list[dict]:
     rows = read_jsonl("dispatch_queue.jsonl")
     return rows[-limit:]
@@ -64,3 +70,35 @@ def list_profiles_from_workflows() -> list[dict]:
     catalog = read_json("workflows.json", default={})
     agents = catalog.get("agents", [])
     return agents if isinstance(agents, list) else []
+
+
+def list_runs(limit: int = 200) -> list[dict]:
+    return read_jsonl("runs.jsonl")[-limit:]
+
+
+def list_active_runs() -> list[dict]:
+    return [r for r in list_runs(500) if r.get("status") in ("queued", "running", "waiting_for_approval")]
+
+
+def list_workflow_events(limit: int = 200) -> list[dict]:
+    return read_jsonl("workflow_events.jsonl")[-limit:]
+
+
+def list_routing_history(limit: int = 100) -> list[dict]:
+    return read_jsonl("routing_history.jsonl")[-limit:]
+
+
+def list_nightly_builds() -> list[dict]:
+    data = read_json("nightly_builds.json", default=[])
+    return data if isinstance(data, list) else []
+
+
+def append_jsonl(filename: str, record: dict) -> None:
+    path = data_dir() / filename
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(record, default=str) + "\n")
+
+
+def dispatch_file_path() -> Path:
+    return data_dir() / "dispatch_queue.jsonl"

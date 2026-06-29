@@ -1,5 +1,5 @@
-import { PlaceholderSpace } from "@/components/spaces/placeholder-space";
+import { CreatePage } from "@/components/create/create-page";
 
 export default function CreateRoute() {
-  return <PlaceholderSpace space="create" />;
+  return <CreatePage />;
 }

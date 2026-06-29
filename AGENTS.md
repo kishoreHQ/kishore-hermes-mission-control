@@ -14,7 +14,31 @@
 
 It is a **server + JSON UI**, not a CLI. The Python side is stdlib-only (no pip deps). The frontend is a single `static/app.js` file.
 
-## Quickstart (for any agent)
+## Hermes OS V2 (production path)
+
+**V2** is the live dashboard at `https://gcp-hermes.tail57c68b.ts.net/today` (native systemd, no Docker).
+
+```bash
+git clone https://github.com/kishoreHQ/kishore-hermes-mission-control.git
+cd kishore-hermes-mission-control
+
+# VPS production
+HERMES_DATA_DIR=/root/mission-control/data HERMES_HOME=/root/.hermes ./scripts/vps-native.sh setup
+./scripts/vps-native.sh install-services
+./scripts/vps-native.sh start
+./scripts/vps-native.sh tailscale
+
+# Local Mac demo
+./scripts/dev-mac.sh api   # terminal 1
+./scripts/dev-mac.sh web   # terminal 2
+```
+
+- **Product spec:** `docs/PRD_V2.md`
+- **Deploy:** `docs/DEPLOYMENT.md`
+- **API:** `http://127.0.0.1:8000/api/v1/docs`
+- **V1 legacy:** `make run` on port 8090 until cutover
+
+## Quickstart V1 (legacy)
 
 ```bash
 # 1. Clone

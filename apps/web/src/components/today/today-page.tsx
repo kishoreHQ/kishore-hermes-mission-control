@@ -3,13 +3,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { Badge, Button, Card, MetricCard, Skeleton } from "@hermes/ui";
 import { todayApi } from "@hermes/sdk";
-
-function severityVariant(s: string): "error" | "warning" | "info" | "success" {
-  if (s === "error") return "error";
-  if (s === "warning") return "warning";
-  if (s === "info") return "info";
-  return "success";
-}
+import { AttentionFeed } from "./attention-feed";
+import { BentoMetrics } from "./bento-metrics";
+import { RunningNowStrip } from "./running-now-strip";
+import { StatusHero } from "./status-hero";
 
 export function TodayPage() {
   const { data, isLoading, error, refetch } = useQuery({
@@ -20,9 +17,9 @@ export function TodayPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-8 w-64" />
+        <Skeleton className="h-32 w-full" />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-24" />)}
+          {[1, 2, 3, 4, 5, 6, 7].map((i) => <Skeleton key={i} className="h-24" />)}
         </div>
       </div>
     );
@@ -32,51 +29,46 @@ export function TodayPage() {
     return (
       <Card>
         <p className="text-destructive">Could not load Today briefing.</p>
-        <p className="text-sm text-muted-foreground mt-1">Ensure API is running on port 8000.</p>
         <Button className="mt-3" onClick={() => refetch()}>Retry</Button>
       </Card>
     );
   }
 
+  const hero = data.status_hero ?? {
+    level: "operational" as const,
+    summary: "Loading status",
+    active_runs: data.metrics.agents_active,
+    services_monitored: 0,
+    enabled_crons: 0,
+  };
+
+  const bento = data.bento ?? {
+    running: data.metrics.agents_active,
+    failed: 0,
+    review: data.attention_count,
+    blocked: 0,
+    workflows: 0,
+    cost_usd: 0,
+    tokens: 0,
+  };
+
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold">{data.greeting}</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          {data.date} · {data.attention_count} item{data.attention_count !== 1 ? "s" : ""} need you
-        </p>
-      </div>
+      <StatusHero hero={hero} greeting={data.greeting} date={data.date} />
+      <BentoMetrics bento={bento} />
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <MetricCard
-          label="Nightly"
-          value={`${data.metrics.nightly.succeeded}/${data.metrics.nightly.total || "—"}`}
-          sub={data.metrics.nightly.status}
-        />
-        <MetricCard label="Agents" value={data.metrics.agents_active} sub="active" />
-        <MetricCard label="Content" value={data.metrics.content_queued} sub="queued" />
-        <MetricCard label={data.metrics.stocks.symbol} value={data.metrics.stocks.change} />
-      </div>
+      <section aria-labelledby="running-heading">
+        <h2 id="running-heading" className="text-sm font-medium uppercase tracking-wide text-muted-foreground mb-3">
+          Running now
+        </h2>
+        <RunningNowStrip items={data.running_now ?? []} />
+      </section>
 
       <section aria-labelledby="attention-heading">
         <h2 id="attention-heading" className="text-sm font-medium uppercase tracking-wide text-muted-foreground mb-3">
           Needs attention
         </h2>
-        <div className="space-y-2">
-          {data.attention.map((item) => (
-            <Card key={item.id} className="flex items-center justify-between gap-4 py-3">
-              <div className="flex items-center gap-3 min-w-0">
-                <Badge variant={severityVariant(item.severity)}>{item.severity}</Badge>
-                <span className="text-sm truncate">{item.title}</span>
-              </div>
-              <div className="flex gap-2 shrink-0">
-                {item.actions.map((a) => (
-                  <Button key={a} variant="ghost" className="text-xs capitalize">{a}</Button>
-                ))}
-              </div>
-            </Card>
-          ))}
-        </div>
+        <AttentionFeed items={data.attention} />
       </section>
 
       <div className="grid md:grid-cols-2 gap-6">
@@ -120,12 +112,6 @@ export function TodayPage() {
           </div>
         </section>
       )}
-
-      <div className="flex flex-wrap gap-2">
-        {data.quick_actions.map((a) => (
-          <Button key={a} variant="secondary" className="capitalize">{a.replace("_", " ")}</Button>
-        ))}
-      </div>
     </div>
   );
 }

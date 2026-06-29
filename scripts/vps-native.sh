@@ -7,7 +7,11 @@ cd "$ROOT"
 
 WEB_PORT="${WEB_PORT:-3001}"
 API_PORT="${API_PORT:-8000}"
-HERMES_DATA_DIR="${HERMES_DATA_DIR:-$ROOT/data}"
+if [[ -d /root/mission-control/data ]]; then
+  HERMES_DATA_DIR="${HERMES_DATA_DIR:-/root/mission-control/data}"
+else
+  HERMES_DATA_DIR="${HERMES_DATA_DIR:-$ROOT/data}"
+fi
 HERMES_HOME="${HERMES_HOME:-${HOME}/.hermes}"
 ENV_FILE="$ROOT/.vps-native.env"
 

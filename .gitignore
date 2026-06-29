@@ -25,6 +25,8 @@ data/*.jsonl
 data/*.db
 data/*.sqlite
 data/*.sqlite3
+data/metrics.db
+apps/api/data/
 data/workflows_multi.json
 data/tasks.json
 data/nightly_builds.json

@@ -254,3 +254,36 @@ See [README-V2.md](../README-V2.md) for local Docker details. Disk cost: ~1–2 
 ---
 
 *For local Mac testing, see [README-V2.md](../README-V2.md).*
+
+---
+
+## 8. Nightly pipeline timer (optional)
+
+Install systemd timer to trigger the DAG at 2 AM:
+
+```bash
+sudo cp deploy/hermes-os-nightly.service.example /etc/systemd/system/hermes-os-nightly.service
+sudo cp deploy/hermes-os-nightly.timer.example /etc/systemd/system/hermes-os-nightly.timer
+sudo systemctl daemon-reload
+sudo systemctl enable --now hermes-os-nightly.timer
+systemctl list-timers hermes-os-nightly.timer
+```
+
+Manual trigger: `curl -X POST http://127.0.0.1:8000/api/v1/nightly/trigger`
+
+---
+
+## 9. Per-phase verification checklist
+
+After `git pull && ./scripts/vps-native.sh setup && ./scripts/vps-native.sh restart`:
+
+| Phase | Verify |
+|-------|--------|
+| 0 Data | `curl -sf localhost:8000/api/v1/cron \| jq '.items \| length'` ≈ 19 |
+| 1 Reads | `curl -sf localhost:8000/api/v1/status?heavy=false \| jq .summary` |
+| 2 Today | Open `/today` — status hero + 7 bento tiles + running strip |
+| 3 Dispatch | `POST /api/v1/dispatch/enqueue` then watch `/agents/dispatch` |
+| 4 Nightly | `POST /api/v1/nightly/trigger`; `/insights` shows cost rows |
+| 5 Spaces | `/create`, `/wealth`, `/knowledge`, `/infrastructure` load data |
+| 6 Cutover | Compare V1 `:8090` vs V2; stop `mission-control.service` when ready |
+

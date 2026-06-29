@@ -20,6 +20,8 @@ jobs:
         run: ruff check apps/api/app
       - name: Import check
         run: PYTHONPATH=apps/api python -c "from app.main import app"
+      - name: API tests
+        run: PYTHONPATH=apps/api pytest apps/api/tests -q
 
   web:
     runs-on: ubuntu-latest

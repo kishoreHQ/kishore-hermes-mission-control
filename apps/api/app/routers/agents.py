@@ -1,4 +1,4 @@
-from app.services import legacy_adapter
+from app.services import hermes_adapter, legacy_adapter
 from fastapi import APIRouter
 
 router = APIRouter(tags=["agents"])
@@ -6,6 +6,9 @@ router = APIRouter(tags=["agents"])
 
 @router.get("/profiles")
 def list_profiles():
+    profiles = hermes_adapter.list_profiles()
+    if profiles:
+        return {"items": profiles}
     return {"items": legacy_adapter.list_profiles_from_workflows()}
 
 
@@ -17,14 +20,14 @@ def list_workflows():
     return {"items": data}
 
 
-@router.get("/tasks")
-def list_tasks():
-    return {"items": legacy_adapter.list_tasks()}
+@router.get("/workflows/{workflow_id}/timeline")
+def workflow_timeline(workflow_id: str):
+    events = [
+        e for e in legacy_adapter.list_workflow_events(500) if str(e.get("workflow_id")) == workflow_id
+    ]
+    return {"items": events[-50:]}
 
 
 @router.get("/cron")
 def list_cron():
-    return {
-        "items": [],
-        "note": "Connect HERMES_HOME cron jobs.json on VPS for live cron data",
-    }
+    return {"items": hermes_adapter.list_cron_summaries()}

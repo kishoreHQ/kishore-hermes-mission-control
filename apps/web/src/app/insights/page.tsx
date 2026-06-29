@@ -1,5 +1,5 @@
-import { PlaceholderSpace } from "@/components/spaces/placeholder-space";
+import { InsightsPage } from "@/components/insights/insights-page";
 
 export default function InsightsRoute() {
-  return <PlaceholderSpace space="insights" />;
+  return <InsightsPage />;
 }
