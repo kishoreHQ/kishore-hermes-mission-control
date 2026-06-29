@@ -1,0 +1,17 @@
+[Unit]
+Description=Hermes OS V2 API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=REPO_ROOT/apps/api
+EnvironmentFile=REPO_ROOT/.vps-native.env
+Environment=PYTHONPATH=.
+ExecStart=REPO_ROOT/apps/api/.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port API_PORT
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

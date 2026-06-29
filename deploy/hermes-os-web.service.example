@@ -1,0 +1,17 @@
+[Unit]
+Description=Hermes OS V2 Web
+After=network-online.target hermes-os-api.service
+Wants=network-online.target
+Requires=hermes-os-api.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=REPO_ROOT
+EnvironmentFile=REPO_ROOT/.vps-native.env
+ExecStart=/usr/bin/npm run start --workspace=@hermes/web -- --port WEB_PORT --hostname 127.0.0.1
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,10 @@
+{
+  "name": "Hermes OS",
+  "short_name": "Hermes",
+  "description": "Personal AI operating system",
+  "start_url": "/today",
+  "display": "standalone",
+  "background_color": "#090b0f",
+  "theme_color": "#090b0f",
+  "icons": []
+}

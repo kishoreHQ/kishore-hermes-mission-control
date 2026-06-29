@@ -1,0 +1,21 @@
+{
+  "id": "hermes-plugin-manifest-v1",
+  "plugins": [
+    {
+      "id": "contentforge-queue",
+      "space": "create",
+      "module": "content-studio",
+      "todayWidget": true,
+      "name": "Content Queue",
+      "entry": "@hermes/plugin-content"
+    },
+    {
+      "id": "stock-dashboard",
+      "space": "wealth",
+      "module": "stocks",
+      "todayWidget": true,
+      "name": "Stock Pulse",
+      "entry": "@hermes/plugin-wealth"
+    }
+  ]
+}

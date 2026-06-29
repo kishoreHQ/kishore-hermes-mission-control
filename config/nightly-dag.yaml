@@ -1,0 +1,61 @@
+version: 1
+schedule: "0 2 * * *"
+timeout_minutes: 120
+
+jobs:
+  research_ai_tools:
+    profile: DeepResearch
+    prompt: "Research latest AI tools and models released this week. Summarize top 5."
+    timeout: 600
+    artifact: ai-tools-summary.md
+
+  update_learning:
+    profile: Tutor
+    prompt: "Review learning progress and update the learning roadmap."
+    timeout: 600
+    artifact: learning-roadmap.json
+
+  stock_research:
+    profile: MarketAnalyst
+    prompt: "Refresh NSE/Nifty research. Update stock picks."
+    timeout: 900
+    artifact: stock-research.md
+
+  content_ideas:
+    profile: ContentCreator
+    prompt: "Generate 5 content ideas for this week based on recent AI news."
+    timeout: 600
+    depends_on: [research_ai_tools]
+    artifact: content-ideas.json
+
+  index_knowledge:
+    type: script
+    command: "python scripts/index_knowledge.py"
+    timeout: 300
+
+  backup_data:
+    type: script
+    command: "bash scripts/backup.sh"
+    timeout: 600
+
+  eval_agents:
+    type: script
+    command: "python scripts/eval_agent_performance.py"
+    timeout: 300
+
+  clean_temp:
+    type: script
+    command: "bash scripts/clean_temp.sh"
+    timeout: 120
+
+  morning_report:
+    type: report
+    depends_on:
+      - research_ai_tools
+      - update_learning
+      - stock_research
+      - content_ideas
+      - index_knowledge
+      - backup_data
+      - eval_agents
+    template: templates/morning-report.md.j2
